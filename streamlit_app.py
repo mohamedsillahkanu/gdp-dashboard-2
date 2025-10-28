@@ -240,15 +240,34 @@ def construct_worldpop_url(country_code, year, age_group, sex):
         return url
 
 @st.cache_data
-def download_worldpop_data(country_code, year, age_group, sex):
-    """Download WorldPop data and return the file content"""
+def download_worldpop_data(country_code, year, age_group, sex, progress_callback=None):
+    """Download WorldPop data and return the file content with progress tracking"""
     
     url = construct_worldpop_url(country_code, year, age_group, sex)
     
     try:
-        response = requests.get(url, timeout=120, stream=True)
+        response = requests.get(url, timeout=180, stream=True)
         response.raise_for_status()
-        return response.content, url
+        
+        # Get file size if available
+        total_size = int(response.headers.get('content-length', 0))
+        
+        # Download with progress tracking
+        chunks = []
+        downloaded = 0
+        
+        for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
+            if chunk:
+                chunks.append(chunk)
+                downloaded += len(chunk)
+                
+                # Update progress if callback provided
+                if progress_callback and total_size > 0:
+                    progress = (downloaded / total_size) * 100
+                    progress_callback(progress, downloaded, total_size)
+        
+        return b''.join(chunks), url, total_size
+        
     except requests.exceptions.RequestException as e:
         # Try alternative URL formats if first attempt fails
         alt_urls = []
@@ -261,22 +280,35 @@ def download_worldpop_data(country_code, year, age_group, sex):
         
         for alt_url in alt_urls:
             try:
-                response = requests.get(alt_url, timeout=120, stream=True)
+                response = requests.get(alt_url, timeout=180, stream=True)
                 response.raise_for_status()
-                return response.content, alt_url
+                
+                total_size = int(response.headers.get('content-length', 0))
+                chunks = []
+                downloaded = 0
+                
+                for chunk in response.iter_content(chunk_size=1024*1024):
+                    if chunk:
+                        chunks.append(chunk)
+                        downloaded += len(chunk)
+                        if progress_callback and total_size > 0:
+                            progress = (downloaded / total_size) * 100
+                            progress_callback(progress, downloaded, total_size)
+                
+                return b''.join(chunks), alt_url, total_size
             except:
                 continue
         
         raise ConnectionError(f"Failed to download WorldPop data for {country_code} {year}: {str(e)}\nTried URL: {url}")
 
-def process_worldpop_data(_gdf, country_code, year, age_group, sex):
+def process_worldpop_data(_gdf, country_code, year, age_group, sex, progress_callback=None):
     """Process WorldPop population data with improved error handling"""
     
     # Create a copy to avoid modifying the original
     gdf = _gdf.copy()
     
     # Download the WorldPop data (this part is cached)
-    worldpop_data, used_url = download_worldpop_data(country_code, year, age_group, sex)
+    worldpop_data, used_url, file_size = download_worldpop_data(country_code, year, age_group, sex, progress_callback)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tif_file_path = os.path.join(tmpdir, "worldpop.tif")
@@ -328,7 +360,7 @@ def process_worldpop_data(_gdf, country_code, year, age_group, sex):
         except rasterio.errors.RasterioIOError as e:
             raise ValueError(f"Failed to process raster file: {str(e)}")
     
-    return gdf, used_url
+    return gdf, used_url, file_size
 
 # Main app layout
 st.title("👥 WorldPop Population Data Analysis and Mapping")
@@ -538,23 +570,44 @@ with col1:
                                                  year, age_group, sex)
                 
                 # Step 2: Process WorldPop data
-                status_text.text("👥 Processing WorldPop population data...")
+                status_text.text("👥 Downloading WorldPop population data...")
                 progress_bar.progress(40)
+                
+                # Create download progress display
+                download_status = st.empty()
+                
+                def update_download_progress(percent, downloaded, total):
+                    mb_downloaded = downloaded / (1024*1024)
+                    mb_total = total / (1024*1024)
+                    download_status.info(f"⬇️ Downloading: {mb_downloaded:.1f} MB / {mb_total:.1f} MB ({percent:.1f}%)")
                 
                 try:
                     if st.session_state.data_source == "GADM Database":
-                        processed_gdf, used_url = process_worldpop_data(gdf, st.session_state.country_code, year, age_group, sex)
+                        processed_gdf, used_url, file_size = process_worldpop_data(
+                            gdf, st.session_state.country_code, year, age_group, sex, 
+                            progress_callback=update_download_progress
+                        )
                     else:
                         # For custom shapefiles, need to specify a country code for WorldPop data
                         st.warning("⚠️ Custom shapefile detected. Using Sierra Leone (SLE) WorldPop data as default.")
                         st.info("💡 Tip: For accurate results with custom shapefiles, ensure they align with a specific country's boundaries")
-                        processed_gdf, used_url = process_worldpop_data(gdf, "SLE", year, age_group, sex)
+                        processed_gdf, used_url, file_size = process_worldpop_data(
+                            gdf, "SLE", year, age_group, sex,
+                            progress_callback=update_download_progress
+                        )
                     
-                    st.success(f"✅ Population data processed successfully")
+                    download_status.empty()  # Clear download progress
+                    
+                    file_size_mb = file_size / (1024*1024) if file_size > 0 else 0
+                    st.success(f"✅ Population data processed successfully (File size: {file_size_mb:.1f} MB)")
+                    
                     with st.expander("🔗 Data Source URL"):
                         st.code(used_url, language="text")
+                        if file_size_mb > 100:
+                            st.info("💡 **Large file**: This data is now cached. Subsequent analyses will be much faster!")
                     
                 except Exception as e:
+                    download_status.empty()
                     st.error(f"❌ Error processing population data: {str(e)}")
                     st.stop()
 
@@ -842,6 +895,12 @@ with col2:
     - UN-adjusted estimates available
     - Age groups: 0-80+ in 5-year bands
     - Sex-specific estimates available
+    
+    **Performance Notes:**
+    - **First run**: 30-120 seconds (downloading 50-200 MB files)
+    - **Subsequent runs**: 5-15 seconds (cached data)
+    - **Large countries** (Nigeria, DRC, Ethiopia): Longer processing
+    - Data is cached automatically for faster repeat analysis
     """)
     
     with st.expander("📋 Usage Tips"):
@@ -853,6 +912,28 @@ with col2:
         - **Custom shapefiles**: Include .prj files
         - **Large areas**: May take longer to process
         - **Downloads**: Excel includes summary stats
+        - **First time slow?** ✅ Normal! File is 50-200 MB (then cached)
+        - **Repeat analysis**: Much faster with cached data
+        """)
+    
+    with st.expander("⚡ Performance Tips"):
+        st.markdown("""
+        **Why is it slow the first time?**
+        - WorldPop files are 50-200 MB (vs CHIRPS 2-5 MB)
+        - High-resolution population data = larger files
+        - Network download speed dependent
+        
+        **How to speed up:**
+        - ✅ Data caches automatically after first download
+        - ✅ Use same country/year for repeat analyses
+        - ✅ Start with higher admin levels (faster processing)
+        - ✅ Good internet connection helps first download
+        - ✅ Subsequent runs are 5-10x faster!
+        
+        **File Size by Country (approximate):**
+        - Small countries (Gambia, Lesotho): 20-40 MB
+        - Medium countries (Sierra Leone, Benin): 50-80 MB
+        - Large countries (Nigeria, DRC, Ethiopia): 150-250 MB
         """)
     
     with st.expander("👥 Population Analysis Types"):
