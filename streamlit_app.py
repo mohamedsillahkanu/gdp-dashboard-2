@@ -240,8 +240,56 @@ def construct_worldpop_url(country_code, year, age_group, sex):
         return url
 
 @st.cache_data
-def download_worldpop_data(country_code, year, age_group, sex, progress_callback=None):
-    """Download WorldPop data and return the file content with progress tracking"""
+def download_worldpop_data(country_code, year, age_group, sex):
+    """Download WorldPop data and return the file content (cached version)"""
+    
+    url = construct_worldpop_url(country_code, year, age_group, sex)
+    
+    try:
+        response = requests.get(url, timeout=180, stream=True)
+        response.raise_for_status()
+        
+        # Get file size if available
+        total_size = int(response.headers.get('content-length', 0))
+        
+        # Download all data
+        chunks = []
+        for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
+            if chunk:
+                chunks.append(chunk)
+        
+        return b''.join(chunks), url, total_size
+        
+    except requests.exceptions.RequestException as e:
+        # Try alternative URL formats if first attempt fails
+        alt_urls = []
+        
+        # Alternative 1: Try constrained version
+        if age_group == "ppp":
+            country_lower = WORLDPOP_CODES[country_code]
+            alt_url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code.upper()}/{country_lower}_ppp_{year}.tif"
+            alt_urls.append(alt_url)
+        
+        for alt_url in alt_urls:
+            try:
+                response = requests.get(alt_url, timeout=180, stream=True)
+                response.raise_for_status()
+                
+                total_size = int(response.headers.get('content-length', 0))
+                chunks = []
+                
+                for chunk in response.iter_content(chunk_size=1024*1024):
+                    if chunk:
+                        chunks.append(chunk)
+                
+                return b''.join(chunks), alt_url, total_size
+            except:
+                continue
+        
+        raise ConnectionError(f"Failed to download WorldPop data for {country_code} {year}: {str(e)}\nTried URL: {url}")
+
+def download_worldpop_data_with_progress(country_code, year, age_group, sex, progress_callback=None):
+    """Download WorldPop data with progress tracking (non-cached wrapper)"""
     
     url = construct_worldpop_url(country_code, year, age_group, sex)
     
@@ -302,13 +350,20 @@ def download_worldpop_data(country_code, year, age_group, sex, progress_callback
         raise ConnectionError(f"Failed to download WorldPop data for {country_code} {year}: {str(e)}\nTried URL: {url}")
 
 def process_worldpop_data(_gdf, country_code, year, age_group, sex, progress_callback=None):
-    """Process WorldPop population data with improved error handling"""
+    """Process WorldPop population data with improved error handling and smart caching"""
     
     # Create a copy to avoid modifying the original
     gdf = _gdf.copy()
     
-    # Download the WorldPop data (this part is cached)
-    worldpop_data, used_url, file_size = download_worldpop_data(country_code, year, age_group, sex, progress_callback)
+    # Try cached version first (no progress tracking, but instant if cached)
+    try:
+        worldpop_data, used_url, file_size = download_worldpop_data(country_code, year, age_group, sex)
+        # If we get here, data was cached (fast)
+    except:
+        # If cached version fails, try with progress tracking
+        worldpop_data, used_url, file_size = download_worldpop_data_with_progress(
+            country_code, year, age_group, sex, progress_callback
+        )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tif_file_path = os.path.join(tmpdir, "worldpop.tif")
