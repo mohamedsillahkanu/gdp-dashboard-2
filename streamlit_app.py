@@ -22,47 +22,47 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Apply dark theme CSS with vibrant yellow/gold neon theme
+# Apply dark theme CSS with sophisticated black and blue theme
 st.markdown("""
 <style>
-    /* Main background - Deep dark with electric undertones */
+    /* Main background - Deep black with blue undertones */
     .stApp {
-        background: linear-gradient(135deg, #0f0a00 0%, #1a1400 100%);
+        background: linear-gradient(135deg, #000814 0%, #001d3d 100%);
     }
     
-    /* Sidebar styling - Dark with subtle yellow glow */
+    /* Sidebar styling - Dark with blue accent */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #151005 0%, #1a1400 100%);
-        border-right: 1px solid rgba(255, 221, 0, 0.1);
+        background: linear-gradient(180deg, #000814 0%, #001233 100%);
+        border-right: 1px solid rgba(0, 119, 182, 0.2);
     }
     
-    /* Headers with neon yellow glow effect */
+    /* Headers with elegant blue glow */
     h1 {
-        color: #ffdd00 !important;
-        text-shadow: 0 0 20px rgba(255, 221, 0, 0.8);
+        color: #0096FF !important;
+        text-shadow: 0 0 20px rgba(0, 150, 255, 0.6);
         font-weight: 700 !important;
     }
     
     h2 {
-        color: #ffee00 !important;
-        text-shadow: 0 0 15px rgba(255, 238, 0, 0.6);
+        color: #00B4D8 !important;
+        text-shadow: 0 0 15px rgba(0, 180, 216, 0.5);
     }
     
     h3 {
-        color: #ffee55 !important;
-        text-shadow: 0 0 12px rgba(255, 238, 85, 0.5);
+        color: #48CAE4 !important;
+        text-shadow: 0 0 12px rgba(72, 202, 228, 0.4);
     }
     
-    /* Metrics - Electric yellow with glow */
+    /* Metrics - Electric blue with glow */
     [data-testid="stMetricValue"] {
-        color: #ffee00 !important;
+        color: #00B4D8 !important;
         font-size: 2.2rem !important;
         font-weight: 700 !important;
-        text-shadow: 0 0 25px rgba(255, 238, 0, 0.8);
+        text-shadow: 0 0 20px rgba(0, 180, 216, 0.7);
     }
     
     [data-testid="stMetricLabel"] {
-        color: #fff4a3 !important;
+        color: #90E0EF !important;
         font-weight: 600 !important;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -70,18 +70,18 @@ st.markdown("""
     
     /* Metric containers */
     [data-testid="metric-container"] {
-        background: linear-gradient(135deg, rgba(255, 221, 0, 0.08), rgba(255, 238, 0, 0.08));
-        border: 1px solid rgba(255, 221, 0, 0.4);
+        background: linear-gradient(135deg, rgba(0, 119, 182, 0.1), rgba(0, 180, 216, 0.1));
+        border: 1px solid rgba(0, 150, 255, 0.3);
         border-radius: 12px;
         padding: 1rem;
-        box-shadow: 0 4px 25px rgba(255, 221, 0, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 119, 182, 0.2);
     }
     
-    /* Buttons - Vibrant yellow */
+    /* Buttons - Bright blue */
     .stButton > button {
-        background: linear-gradient(135deg, #ffdd00 0%, #ffcc00 100%);
-        color: #1a1400;
-        border: 2px solid #ffee00;
+        background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%);
+        color: #ffffff;
+        border: 2px solid #00B4D8;
         border-radius: 8px;
         padding: 0.6rem 1.5rem;
         font-weight: 700;
@@ -89,54 +89,53 @@ st.markdown("""
         transition: all 0.3s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
-        box-shadow: 0 0 30px rgba(255, 221, 0, 0.5);
+        box-shadow: 0 0 25px rgba(0, 119, 182, 0.4);
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #ffee33 0%, #ffdd00 100%);
-        border-color: #ffff66;
-        box-shadow: 0 0 40px rgba(255, 238, 0, 0.7);
+        background: linear-gradient(135deg, #0096C7 0%, #00B4D8 100%);
+        border-color: #48CAE4;
+        box-shadow: 0 0 35px rgba(0, 180, 216, 0.6);
         transform: translateY(-2px);
     }
     
-    /* Primary button - Electric yellow/gold */
+    /* Primary button - Vibrant blue gradient */
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-        border: 2px solid #ffe135;
-        color: #1a1400;
-        box-shadow: 0 0 35px rgba(255, 215, 0, 0.7);
+        background: linear-gradient(135deg, #023E8A 0%, #0077B6 100%);
+        border: 2px solid #0096C7;
+        box-shadow: 0 0 30px rgba(0, 119, 182, 0.6);
     }
     
     .stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #ffee00 0%, #ffcc00 100%);
-        border-color: #fff44f;
-        box-shadow: 0 0 50px rgba(255, 238, 0, 0.9);
+        background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%);
+        border-color: #00B4D8;
+        box-shadow: 0 0 45px rgba(0, 150, 255, 0.8);
         transform: translateY(-2px);
     }
     
-    /* Download buttons - Lime yellow */
+    /* Download buttons - Cyan blue */
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #f4e409 0%, #d4c506 100%);
-        color: #1a1400;
-        border: 2px solid #faed26;
+        background: linear-gradient(135deg, #00B4D8 0%, #48CAE4 100%);
+        color: #000814;
+        border: 2px solid #90E0EF;
         font-weight: 700;
-        box-shadow: 0 0 30px rgba(244, 228, 9, 0.6);
+        box-shadow: 0 0 25px rgba(0, 180, 216, 0.5);
     }
     
     .stDownloadButton > button:hover {
-        background: linear-gradient(135deg, #faed26 0%, #f4e409 100%);
-        border-color: #fef65b;
-        box-shadow: 0 0 40px rgba(250, 237, 38, 0.8);
+        background: linear-gradient(135deg, #48CAE4 0%, #90E0EF 100%);
+        border-color: #ADE8F4;
+        box-shadow: 0 0 35px rgba(72, 202, 228, 0.7);
         transform: translateY(-2px);
     }
     
-    /* Text inputs and selects - Dark with yellow accent */
+    /* Text inputs and selects - Dark with blue accent */
     .stSelectbox > div > div,
     .stTextInput > div > div,
     .stNumberInput > div > div {
-        background-color: #252010;
-        color: #fff9db;
-        border: 2px solid rgba(255, 221, 0, 0.5);
+        background-color: #001233;
+        color: #CAF0F8;
+        border: 2px solid rgba(0, 119, 182, 0.4);
         border-radius: 8px;
         font-weight: 500;
     }
@@ -144,178 +143,193 @@ st.markdown("""
     .stSelectbox > div > div:hover,
     .stTextInput > div > div:hover,
     .stNumberInput > div > div:hover {
-        border-color: #ffdd00;
-        box-shadow: 0 0 20px rgba(255, 221, 0, 0.4);
+        border-color: #0096C7;
+        box-shadow: 0 0 15px rgba(0, 150, 199, 0.3);
     }
     
     /* Radio buttons - Modern card style */
     .stRadio > div {
-        background: linear-gradient(135deg, rgba(37, 32, 16, 0.8), rgba(26, 20, 0, 0.8));
+        background: linear-gradient(135deg, rgba(0, 18, 51, 0.8), rgba(0, 8, 20, 0.8));
         padding: 1.2rem;
         border-radius: 12px;
-        border: 1px solid rgba(255, 221, 0, 0.4);
+        border: 1px solid rgba(0, 119, 182, 0.3);
     }
     
     .stRadio label {
-        color: #fff9db !important;
+        color: #CAF0F8 !important;
         font-weight: 600;
     }
     
-    /* Checkboxes - Yellow accent */
+    /* Checkboxes - Blue accent */
     .stCheckbox {
-        color: #fff9db;
+        color: #CAF0F8;
     }
     
     .stCheckbox label {
         font-weight: 600;
     }
     
-    /* File uploader - Glowing yellow border */
+    /* File uploader - Glowing blue border */
     [data-testid="stFileUploader"] {
-        background: linear-gradient(135deg, rgba(37, 32, 16, 0.6), rgba(26, 20, 0, 0.6));
-        border: 2px dashed rgba(255, 221, 0, 0.6);
+        background: linear-gradient(135deg, rgba(0, 18, 51, 0.6), rgba(0, 8, 20, 0.6));
+        border: 2px dashed rgba(0, 150, 255, 0.5);
         border-radius: 12px;
         padding: 1.5rem;
         transition: all 0.3s ease;
     }
     
     [data-testid="stFileUploader"]:hover {
-        border-color: #ffdd00;
-        box-shadow: 0 0 30px rgba(255, 221, 0, 0.4);
+        border-color: #0096FF;
+        box-shadow: 0 0 25px rgba(0, 150, 255, 0.3);
     }
     
-    /* Success messages - Bright lime green */
+    /* Success messages - Bright cyan/green */
     .stSuccess {
-        background: linear-gradient(135deg, rgba(163, 230, 53, 0.15), rgba(132, 204, 22, 0.15));
-        border-left: 4px solid #a3e635;
-        color: #d9f99d !important;
+        background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(5, 150, 105, 0.15));
+        border-left: 4px solid #06D6A0;
+        color: #7FFFD4 !important;
         border-radius: 8px;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(163, 230, 53, 0.3);
+        box-shadow: 0 0 15px rgba(6, 214, 160, 0.3);
     }
     
-    /* Info messages - Bright yellow */
+    /* Info messages - Bright blue */
     .stInfo {
-        background: linear-gradient(135deg, rgba(255, 221, 0, 0.15), rgba(255, 238, 0, 0.15));
-        border-left: 4px solid #ffdd00;
-        color: #fef9c3 !important;
+        background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 119, 182, 0.15));
+        border-left: 4px solid #0096FF;
+        color: #90E0EF !important;
         border-radius: 8px;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(255, 221, 0, 0.4);
+        box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
     }
     
     /* Warning messages - Bright amber */
     .stWarning {
-        background: linear-gradient(135deg, rgba(252, 211, 77, 0.15), rgba(245, 158, 11, 0.15));
-        border-left: 4px solid #fcd34d;
-        color: #fef3c7 !important;
+        background: linear-gradient(135deg, rgba(255, 183, 77, 0.15), rgba(255, 152, 0, 0.15));
+        border-left: 4px solid #FFB74D;
+        color: #FFE082 !important;
         border-radius: 8px;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(252, 211, 77, 0.4);
+        box-shadow: 0 0 15px rgba(255, 183, 77, 0.3);
     }
     
     /* Error messages - Bright red */
     .stError {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
-        border-left: 4px solid #ef4444;
-        color: #fca5a5 !important;
+        background: linear-gradient(135deg, rgba(239, 83, 80, 0.15), rgba(229, 57, 53, 0.15));
+        border-left: 4px solid #EF5350;
+        color: #FFCDD2 !important;
         border-radius: 8px;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 15px rgba(239, 83, 80, 0.3);
     }
     
-    /* Expander - Golden gradient */
+    /* Expander - Cool blue gradient */
     .streamlit-expanderHeader {
-        background: linear-gradient(135deg, rgba(37, 32, 16, 0.8), rgba(26, 20, 0, 0.8));
+        background: linear-gradient(135deg, rgba(0, 18, 51, 0.8), rgba(0, 8, 20, 0.8));
         border-radius: 8px;
-        color: #ffdd00 !important;
-        border: 1px solid rgba(255, 221, 0, 0.4);
+        color: #0096FF !important;
+        border: 1px solid rgba(0, 119, 182, 0.3);
         font-weight: 600;
         transition: all 0.3s ease;
     }
     
     .streamlit-expanderHeader:hover {
-        background: linear-gradient(135deg, rgba(37, 32, 16, 1), rgba(26, 20, 0, 1));
-        border-color: #ffdd00;
-        box-shadow: 0 0 25px rgba(255, 221, 0, 0.4);
+        background: linear-gradient(135deg, rgba(0, 18, 51, 1), rgba(0, 8, 20, 1));
+        border-color: #0096FF;
+        box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
     }
     
     /* Dataframe - Modern dark table */
     .stDataFrame {
-        background-color: #252010;
+        background-color: #001233;
         border-radius: 8px;
-        border: 1px solid rgba(255, 221, 0, 0.4);
+        border: 1px solid rgba(0, 119, 182, 0.3);
     }
     
-    /* Progress bar - Yellow to gold gradient */
+    /* Progress bar - Blue gradient */
     .stProgress > div > div {
-        background: linear-gradient(90deg, #ffee00 0%, #ffd700 50%, #ffaa00 100%);
-        box-shadow: 0 0 25px rgba(255, 238, 0, 0.6);
+        background: linear-gradient(90deg, #0077B6 0%, #0096C7 50%, #00B4D8 100%);
+        box-shadow: 0 0 20px rgba(0, 119, 182, 0.5);
     }
     
-    /* Code blocks - Bright yellow */
+    /* Code blocks - Bright blue */
     code {
-        background-color: #252010;
-        color: #ffee00 !important;
+        background-color: #001233;
+        color: #00B4D8 !important;
         padding: 0.3rem 0.6rem;
         border-radius: 6px;
-        border: 1px solid rgba(255, 221, 0, 0.5);
+        border: 1px solid rgba(0, 119, 182, 0.4);
         font-weight: 600;
     }
     
-    /* Links - Golden yellow */
+    /* Links - Cyan blue */
     a {
-        color: #fde047 !important;
+        color: #48CAE4 !important;
         text-decoration: none;
         font-weight: 600;
         transition: all 0.3s ease;
     }
     
     a:hover {
-        color: #fef08a !important;
+        color: #90E0EF !important;
         text-decoration: underline;
-        text-shadow: 0 0 10px rgba(253, 224, 71, 0.7);
+        text-shadow: 0 0 10px rgba(72, 202, 228, 0.6);
     }
     
-    /* Caption text - Soft yellow */
+    /* Caption text - Soft blue-gray */
     .css-1629p8f, .css-nahz7x {
-        color: #d4c595 !important;
+        color: #8B9DC3 !important;
         font-weight: 500;
     }
     
-    /* Divider - Glowing yellow line */
+    /* Divider - Glowing blue line */
     hr {
         border: none;
         height: 2px;
-        background: linear-gradient(90deg, transparent, #ffdd00, transparent);
-        box-shadow: 0 0 15px rgba(255, 221, 0, 0.5);
+        background: linear-gradient(90deg, transparent, #0096FF, transparent);
+        box-shadow: 0 0 10px rgba(0, 150, 255, 0.4);
     }
     
-    /* Regular text - Soft cream color */
+    /* Regular text - Light blue-white */
     p, li, span, div {
-        color: #fff9db !important;
+        color: #CAF0F8 !important;
     }
     
     /* Markdown text */
     .stMarkdown {
-        color: #fff9db !important;
+        color: #CAF0F8 !important;
     }
     
     /* Subheaders in sidebar */
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3 {
-        color: #ffdd00 !important;
+        color: #0096FF !important;
     }
     
     /* Radio button selected state */
     input[type="radio"]:checked + label {
-        color: #ffdd00 !important;
+        color: #00B4D8 !important;
     }
     
     /* Make all text more visible */
     .stApp p, .stApp span, .stApp div, .stApp li {
-        color: #fff9db !important;
+        color: #CAF0F8 !important;
+    }
+    
+    /* Table headers */
+    thead tr th {
+        background-color: #001d3d !important;
+        color: #00B4D8 !important;
+    }
+    
+    /* Table rows */
+    tbody tr {
+        background-color: #001233 !important;
+    }
+    
+    tbody tr:hover {
+        background-color: rgba(0, 119, 182, 0.1) !important;
     }
 </style>
 """, unsafe_allow_html=True)
