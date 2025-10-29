@@ -96,8 +96,8 @@ st.markdown("""
         background: #0d1b2a;
         padding: 2rem;
         border-radius: 1rem;
-        box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 0 8px 32px rgba(96, 165, 250, 0.3);
+        border: 1px solid rgba(96, 165, 250, 0.3);
         text-align: center;
         margin-bottom: 2rem;
     }
@@ -106,7 +106,7 @@ st.markdown("""
     [data-testid="stExpander"] {
         background: #0f172a;
         backdrop-filter: blur(15px);
-        border: 1px solid rgba(37, 99, 235, 0.2);
+        border: 1px solid rgba(96, 165, 250, 0.3);
         border-radius: 15px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         margin-bottom: 1rem;
@@ -134,133 +134,133 @@ st.markdown("""
         color: #ffffff !important;
         font-weight: 600;
         border-radius: 12px;
-        border: 1px solid rgba(30, 64, 175, 0.3);
+        border: 1px solid rgba(96, 165, 250, 0.3);
     }
     
     .streamlit-expanderHeader:hover {
         background: #334155;
-        border-color: rgba(37, 99, 235, 0.4);
+        border-color: rgba(96, 165, 250, 0.5);
     }
     
-    /* Buttons */
+    /* Buttons - Light blue accent */
     .stButton > button {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         color: white;
         border: none;
         padding: 0.75rem 1.5rem;
         border-radius: 10px;
         font-weight: 600;
         font-size: 16px;
-        box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
+        box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
         transition: all 0.3s ease;
         width: 100%;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(29, 78, 216, 0.4);
+        box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
     }
     
     .stButton > button:active {
         transform: translateY(0);
     }
     
-    /* Download buttons */
+    /* Download buttons - Light blue accent */
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         color: white;
         border: none;
         padding: 0.75rem 1.5rem;
         border-radius: 10px;
         font-weight: 600;
-        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
         transition: all 0.3s ease;
     }
     
     .stDownloadButton > button:hover {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
     }
     
-    /* Select boxes and inputs */
+    /* Select boxes and inputs - Dark background with light blue text */
     .stSelectbox > div > div,
     .stMultiSelect > div > div,
     .stTextInput > div > div,
     .stNumberInput > div > div {
-        background: rgba(15, 23, 42, 0.9) !important;
-        border: 2px solid #1e40af !important;
+        background: #0f172a !important;
+        border: 2px solid #60a5fa !important;
         border-radius: 12px !important;
-        color: #ffffff !important;
+        color: #93c5fd !important;
     }
     
     .stSelectbox > div > div:focus-within,
     .stMultiSelect > div > div:focus-within,
     .stTextInput > div > div:focus-within {
-        border-color: #2563eb !important;
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+        border-color: #60a5fa !important;
+        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3) !important;
     }
     
     /* Selectbox text and options */
     .stSelectbox label,
     .stMultiSelect label {
-        color: #ffffff !important;
+        color: #93c5fd !important;
     }
     
-    /* Dropdown menu styling */
+    /* Dropdown menu styling - Dark with light blue text */
     [data-baseweb="select"] > div {
-        background-color: rgba(15, 23, 42, 0.95) !important;
-        color: #ffffff !important;
+        background-color: #0f172a !important;
+        color: #93c5fd !important;
     }
     
     /* Dropdown input field */
     [data-baseweb="select"] input {
-        color: #ffffff !important;
+        color: #93c5fd !important;
     }
     
     /* Dropdown selected value */
     [data-baseweb="select"] [data-baseweb="tag"] {
-        background-color: rgba(29, 78, 216, 0.3) !important;
+        background-color: rgba(96, 165, 250, 0.2) !important;
         color: #93c5fd !important;
     }
     
-    /* Dropdown menu container */
+    /* Dropdown menu container - Dark */
     [role="listbox"] {
-        background-color: rgba(15, 23, 42, 0.98) !important;
-        border: 1px solid rgba(37, 99, 235, 0.4) !important;
+        background-color: #0f172a !important;
+        border: 1px solid rgba(96, 165, 250, 0.4) !important;
         border-radius: 12px !important;
         backdrop-filter: blur(15px) !important;
     }
     
-    /* Dropdown menu options */
+    /* Dropdown menu options - Light blue text */
     [role="option"] {
         background-color: transparent !important;
-        color: #ffffff !important;
+        color: #93c5fd !important;
         padding: 0.75rem 1rem !important;
         transition: all 0.2s ease !important;
     }
     
     [role="option"]:hover {
-        background-color: rgba(29, 78, 216, 0.4) !important;
+        background-color: rgba(96, 165, 250, 0.2) !important;
         color: #ffffff !important;
     }
     
     [role="option"][aria-selected="true"] {
-        background-color: rgba(37, 99, 235, 0.5) !important;
+        background-color: rgba(96, 165, 250, 0.3) !important;
         color: #ffffff !important;
         font-weight: 600 !important;
     }
     
-    /* Dropdown arrow icon */
+    /* Dropdown arrow icon - Light blue */
     [data-baseweb="select"] svg {
         color: #93c5fd !important;
     }
     
-    /* Input text color */
+    /* Input text color - Light blue */
     input, textarea {
-        color: #ffffff !important;
-        background-color: rgba(15, 23, 42, 0.9) !important;
+        color: #93c5fd !important;
+        background-color: #0f172a !important;
     }
     
     input::placeholder, textarea::placeholder {
@@ -272,7 +272,7 @@ st.markdown("""
         background: #0f172a;
         padding: 1rem;
         border-radius: 12px;
-        border: 1px solid rgba(30, 64, 175, 0.3);
+        border: 1px solid rgba(96, 165, 250, 0.3);
     }
     
     .stRadio > div > label {
@@ -300,14 +300,14 @@ st.markdown("""
     /* File uploader - Pure dark */
     [data-testid="stFileUploader"] {
         background: #0f172a;
-        border: 2px dashed #2563eb;
+        border: 2px dashed #60a5fa;
         border-radius: 15px;
         padding: 2rem;
     }
     
     [data-testid="stFileUploader"]:hover {
-        border-color: #3b82f6;
-        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.2);
+        border-color: #93c5fd;
+        box-shadow: 0 12px 40px rgba(96, 165, 250, 0.2);
     }
     
     /* Metrics */
@@ -327,14 +327,14 @@ st.markdown("""
         padding: 1.5rem;
         border-radius: 15px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(37, 99, 235, 0.2);
+        border: 1px solid rgba(96, 165, 250, 0.3);
         transition: all 0.3s ease;
     }
     
     div[data-testid="metric-container"]:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.3);
-        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 12px 40px rgba(96, 165, 250, 0.3);
+        border-color: rgba(96, 165, 250, 0.5);
     }
     
     /* Success/Info/Warning/Error messages - Pure dark */
@@ -342,30 +342,30 @@ st.markdown("""
         background: #0f172a;
         backdrop-filter: blur(15px);
         color: #ffffff;
-        border: 1px solid rgba(37, 99, 235, 0.4);
+        border: 1px solid rgba(96, 165, 250, 0.5);
         border-radius: 12px;
         padding: 1rem;
-        box-shadow: 0 4px 15px rgba(29, 78, 216, 0.2);
+        box-shadow: 0 4px 15px rgba(96, 165, 250, 0.2);
     }
     
     .stInfo {
         background: #0f172a;
         backdrop-filter: blur(15px);
         color: #ffffff;
-        border: 1px solid rgba(6, 182, 212, 0.4);
+        border: 1px solid rgba(96, 165, 250, 0.5);
         border-radius: 12px;
         padding: 1rem;
-        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
+        box-shadow: 0 4px 15px rgba(96, 165, 250, 0.2);
     }
     
     .stWarning {
         background: #0f172a;
         backdrop-filter: blur(15px);
         color: #ffffff;
-        border: 1px solid rgba(234, 179, 8, 0.4);
+        border: 1px solid rgba(96, 165, 250, 0.5);
         border-radius: 12px;
         padding: 1rem;
-        box-shadow: 0 4px 15px rgba(234, 179, 8, 0.2);
+        box-shadow: 0 4px 15px rgba(96, 165, 250, 0.2);
     }
     
     .stError {
@@ -378,16 +378,16 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
     }
     
-    /* Progress bar */
+    /* Progress bar - Light blue */
     .stProgress > div > div > div {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         border-radius: 10px;
     }
     
     /* Dataframe - Pure dark */
     [data-testid="stDataFrame"] {
         background: #0f172a;
-        border: 1px solid rgba(37, 99, 235, 0.2);
+        border: 1px solid rgba(96, 165, 250, 0.3);
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
@@ -402,11 +402,11 @@ st.markdown("""
         background: #1e293b !important;
         color: #ffffff !important;
         font-weight: 600 !important;
-        border-bottom: 2px solid rgba(37, 99, 235, 0.3) !important;
+        border-bottom: 2px solid rgba(96, 165, 250, 0.4) !important;
     }
     
     tbody tr {
-        border-bottom: 1px solid rgba(30, 64, 175, 0.2) !important;
+        border-bottom: 1px solid rgba(96, 165, 250, 0.2) !important;
     }
     
     tbody tr:hover {
@@ -418,7 +418,7 @@ st.markdown("""
         background: #0f172a;
         border-radius: 12px;
         padding: 0.5rem;
-        border: 1px solid rgba(37, 99, 235, 0.2);
+        border: 1px solid rgba(96, 165, 250, 0.3);
     }
     
     .stTabs [data-baseweb="tab"] {
@@ -428,13 +428,13 @@ st.markdown("""
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         color: white;
     }
     
-    /* Spinner */
+    /* Spinner - Light blue */
     .stSpinner > div {
-        border-top-color: #2563eb !important;
+        border-top-color: #60a5fa !important;
     }
     
     /* Code blocks */
@@ -443,12 +443,12 @@ st.markdown("""
         color: #93c5fd;
         padding: 0.2rem 0.4rem;
         border-radius: 6px;
-        border: 1px solid rgba(30, 64, 175, 0.3);
+        border: 1px solid rgba(96, 165, 250, 0.3);
     }
     
     pre {
         background: rgba(10, 14, 26, 0.95);
-        border: 1px solid rgba(30, 64, 175, 0.3);
+        border: 1px solid rgba(96, 165, 250, 0.3);
         border-radius: 12px;
         padding: 1rem;
     }
@@ -465,12 +465,12 @@ st.markdown("""
     }
     
     ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         border-radius: 4px;
     }
     
     ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     }
     
     /* Badge styling */
@@ -566,7 +566,7 @@ st.markdown("""
     /* Footer styling - Pure dark */
     footer {
         background: #0f172a;
-        border-top: 1px solid rgba(37, 99, 235, 0.2);
+        border-top: 1px solid rgba(96, 165, 250, 0.3);
         color: #6b7280;
     }
     
