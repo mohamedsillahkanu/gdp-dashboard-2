@@ -210,13 +210,14 @@ st.markdown("""
     
     /* Dropdown menu styling - Dark with light blue text */
     [data-baseweb="select"] > div {
-        background-color: #0f172a !important;
+        background-color: #0a0e1a !important;
         color: #93c5fd !important;
     }
     
     /* Dropdown input field */
     [data-baseweb="select"] input {
         color: #93c5fd !important;
+        background-color: #0a0e1a !important;
     }
     
     /* Dropdown selected value */
@@ -225,17 +226,18 @@ st.markdown("""
         color: #93c5fd !important;
     }
     
-    /* Dropdown menu container - Dark */
+    /* Dropdown menu container - Pure black/dark */
     [role="listbox"] {
-        background-color: #0f172a !important;
+        background-color: #0a0e1a !important;
         border: 1px solid rgba(96, 165, 250, 0.4) !important;
         border-radius: 12px !important;
         backdrop-filter: blur(15px) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
     }
     
-    /* Dropdown menu options - Light blue text */
+    /* Dropdown menu options - Light blue text on dark */
     [role="option"] {
-        background-color: transparent !important;
+        background-color: #0a0e1a !important;
         color: #93c5fd !important;
         padding: 0.75rem 1rem !important;
         transition: all 0.2s ease !important;
@@ -255,6 +257,20 @@ st.markdown("""
     /* Dropdown arrow icon - Light blue */
     [data-baseweb="select"] svg {
         color: #93c5fd !important;
+    }
+    
+    /* Force dropdown popover to be dark */
+    [data-baseweb="popover"] {
+        background-color: #0a0e1a !important;
+    }
+    
+    /* Additional dropdown styling for menu */
+    [data-baseweb="menu"] {
+        background-color: #0a0e1a !important;
+    }
+    
+    ul[role="listbox"] {
+        background-color: #0a0e1a !important;
     }
     
     /* Input text color - Light blue */
@@ -1252,7 +1268,7 @@ with col1:
                 status_text.text("📊 Generating map...")
                 progress_bar.progress(80)
                 
-                # Create visualization with dark theme
+                # Create visualization with dark theme for display
                 fig, ax = plt.subplots(1, 1, figsize=(12, 10), facecolor='#0f172a')
                 ax.set_facecolor('#0f172a')
                 
@@ -1278,8 +1294,14 @@ with col1:
                 else:
                     title = f"{st.session_state.country} - {age_group_name}, {sex_name} ({year})"
                 
-                ax.set_title(title, fontweight='bold', fontsize=14, color='#93c5fd', pad=20)
+                ax.set_title(title, fontweight='bold', fontsize=14, color='#ffffff', pad=20)
                 ax.set_axis_off()
+                
+                # Style the legend text to be white
+                legend = ax.get_legend()
+                if legend:
+                    for text in legend.get_texts():
+                        text.set_color('#ffffff')
                 
                 plt.tight_layout()
                 
@@ -1291,6 +1313,62 @@ with col1:
                 
                 st.success(f"🎉 Population analysis completed successfully!")
                 st.pyplot(fig)
+                
+                # Add download map button
+                st.markdown("### 📥 Download Map")
+                col_download1, col_download2 = st.columns(2)
+                
+                with col_download1:
+                    # Create a version for download with white background
+                    fig_download, ax_download = plt.subplots(1, 1, figsize=(12, 10), facecolor='white')
+                    ax_download.set_facecolor('white')
+                    
+                    processed_gdf.plot(
+                        column="total_population",
+                        ax=ax_download,
+                        legend=True,
+                        cmap=color_scheme,
+                        edgecolor="black",
+                        linewidth=0.5,
+                        legend_kwds={"shrink": 0.8, "label": "Population"},
+                        missing_kwds={"color": "#e5e5e5", "label": "No data"}
+                    )
+                    
+                    ax_download.set_title(title, fontweight='bold', fontsize=14, color='black', pad=20)
+                    ax_download.set_axis_off()
+                    
+                    # Style the legend text to be black
+                    legend_download = ax_download.get_legend()
+                    if legend_download:
+                        for text in legend_download.get_texts():
+                            text.set_color('black')
+                    
+                    plt.tight_layout()
+                    
+                    # Save to buffer
+                    from io import BytesIO
+                    buf = BytesIO()
+                    fig_download.savefig(buf, format='png', dpi=300, bbox_inches='tight', facecolor='white')
+                    buf.seek(0)
+                    
+                    # Create filename
+                    map_filename = f"worldpop_map_{st.session_state.country_code}_{year}"
+                    if analysis_type == "Age/Sex Disaggregated":
+                        map_filename += f"_{age_group}_{sex}"
+                    map_filename += ".png"
+                    
+                    st.download_button(
+                        label="🗺️ Download Map (PNG)",
+                        data=buf,
+                        file_name=map_filename,
+                        mime="image/png",
+                        use_container_width=True
+                    )
+                    
+                    plt.close(fig_download)
+                
+                with col_download2:
+                    st.info("💡 **Download Info**:\n- High resolution (300 DPI)\n- White background\n- Black text & legend\n- Print-ready quality")
 
                 # Show statistics if requested
                 if show_statistics:
