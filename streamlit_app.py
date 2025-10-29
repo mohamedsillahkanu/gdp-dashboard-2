@@ -235,23 +235,41 @@ st.markdown("""
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
     }
     
-    /* Dropdown menu options - Light blue text on dark */
+    /* Dropdown menu options - Light blue text on dark - FIXED */
     [role="option"] {
         background-color: #0a0e1a !important;
         color: #93c5fd !important;
         padding: 0.75rem 1rem !important;
-        transition: none !important;
+        transition: all 0.2s ease !important;
     }
     
     [role="option"]:hover {
-        background-color: #0a0e1a !important;
-        color: #93c5fd !important;
+        background-color: #1e293b !important;
+        color: #ffffff !important;
     }
     
     [role="option"][aria-selected="true"] {
         background-color: rgba(96, 165, 250, 0.3) !important;
         color: #ffffff !important;
         font-weight: 600 !important;
+    }
+    
+    /* Additional dropdown option styling - FIXED */
+    [data-baseweb="menu"] [role="option"] div {
+        color: #93c5fd !important;
+    }
+    
+    [data-baseweb="menu"] [role="option"]:hover div {
+        color: #ffffff !important;
+    }
+    
+    /* Force all text inside dropdowns to be visible - FIXED */
+    [data-baseweb="popover"] * {
+        color: #93c5fd !important;
+    }
+    
+    [data-baseweb="popover"] [role="option"]:hover * {
+        color: #ffffff !important;
     }
     
     /* Dropdown arrow icon - Light blue */
@@ -802,7 +820,7 @@ def load_uploaded_shapefile(shp_file, shx_file, dbf_file, prj_file=None):
         crs_source = "from .prj file" if prj_file is not None else "detected automatically"
     else:
         # No CRS detected - assume WGS84
-        st.warning(" No coordinate reference system detected. Assuming WGS84 (EPSG:4326)")
+        st.warning("No coordinate reference system detected. Assuming WGS84 (EPSG:4326)")
         gdf = gdf.set_crs("EPSG:4326")
         crs_source = "assumed (WGS84)"
     
@@ -1081,7 +1099,7 @@ with st.sidebar:
                     st.warning("No projection file - will assume WGS84 coordinate system")
         else:
             use_custom_shapefile = False
-            st.info(" Please upload .shp, .shx, and .dbf files to proceed")
+            st.info("Please upload .shp, .shx, and .dbf files to proceed")
             
             # Show upload requirements
             with st.expander("Shapefile Upload Requirements"):
@@ -1151,7 +1169,7 @@ with st.sidebar:
     
     # Display options
     st.markdown("### Display Options")
-    show_statistics = st.checkbox(" Show Statistics", value=True)
+    show_statistics = st.checkbox("Show Statistics", value=True)
     color_scheme = st.selectbox("Color Scheme", 
                                ["YlOrRd", "viridis", "plasma", "Reds", "Blues", "Purples"])
 
@@ -1159,7 +1177,7 @@ with st.sidebar:
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    if st.button("🔄 Generate Analysis", type="primary", use_container_width=True):
+    if st.button("Generate Analysis", type="primary", use_container_width=True):
         if st.session_state.data_source == "Upload Custom Shapefile" and not st.session_state.use_custom_shapefile:
             st.error("Please upload all required shapefile components (.shp, .shx, .dbf)")
         else:
@@ -1182,47 +1200,47 @@ with col1:
                     progress_bar.progress(20)
                     
                     gdf = download_shapefile_from_gadm(st.session_state.country_code, st.session_state.admin_level)
-                    st.success(f" {st.session_state.country} Admin Level {st.session_state.admin_level} shapefile loaded ({len(gdf)} features)")
+                    st.success(f"{st.session_state.country} Admin Level {st.session_state.admin_level} shapefile loaded ({len(gdf)} features)")
                     
                 else:  # Custom shapefile
-                    status_text.text(" Processing uploaded shapefile...")
+                    status_text.text("Processing uploaded shapefile...")
                     progress_bar.progress(10)
                     
                     gdf, crs_source, projection_info = load_uploaded_shapefile(shp_file, shx_file, dbf_file, prj_file)
                     progress_bar.progress(20)
-                    st.success(f" Custom shapefile loaded ({len(gdf)} features)")
+                    st.success(f"Custom shapefile loaded ({len(gdf)} features)")
                     
                     # Show coordinate system info
                     if gdf.crs:
-                        st.info(f" Coordinate System: {gdf.crs} ({crs_source})")
+                        st.info(f"Coordinate System: {gdf.crs} ({crs_source})")
                         if projection_info and prj_file:
-                            with st.expander(" Projection Details"):
+                            with st.expander("Projection Details"):
                                 st.code(projection_info, language="text")
                     
                     # Show attribute columns
                     attribute_cols = [col for col in gdf.columns if col != 'geometry']
                     if attribute_cols:
-                        st.info(f" Available attributes: {', '.join(attribute_cols[:5])}{'...' if len(attribute_cols) > 5 else ''}")
+                        st.info(f"Available attributes: {', '.join(attribute_cols[:5])}{'...' if len(attribute_cols) > 5 else ''}")
                 
                 # Show some basic info about the shapefile
                 if hasattr(gdf, 'NAME_1') and (st.session_state.data_source == "GADM Database" and st.session_state.admin_level >= 1):
                     region_names = gdf['NAME_1'].unique()[:5]
-                    st.info(f" Contains regions: {', '.join(region_names)}{'...' if len(gdf['NAME_1'].unique()) > 5 else ''}")
+                    st.info(f"Contains regions: {', '.join(region_names)}{'...' if len(gdf['NAME_1'].unique()) > 5 else ''}")
                 elif hasattr(gdf, 'NAME_0'):
-                    st.info(f" Country: {gdf['NAME_0'].iloc[0]}")
+                    st.info(f"Country: {gdf['NAME_0'].iloc[0]}")
                 elif st.session_state.data_source == "Upload Custom Shapefile":
                     geom_types = gdf.geometry.type.unique()
-                    st.info(f" Geometry types: {', '.join(geom_types)}")
+                    st.info(f"Geometry types: {', '.join(geom_types)}")
                 
                 # Test WorldPop data availability
-                status_text.text(" Testing WorldPop data availability...")
+                status_text.text("Testing WorldPop data availability...")
                 progress_bar.progress(30)
                 
                 test_url = construct_worldpop_url(st.session_state.country_code if st.session_state.data_source == "GADM Database" else "SLE", 
                                                  year, age_group, sex)
                 
                 # Step 2: Process WorldPop data
-                status_text.text(" Downloading WorldPop population data...")
+                status_text.text("Downloading WorldPop population data...")
                 progress_bar.progress(40)
                 
                 # Create download progress display
@@ -1231,7 +1249,7 @@ with col1:
                 def update_download_progress(percent, downloaded, total):
                     mb_downloaded = downloaded / (1024*1024)
                     mb_total = total / (1024*1024)
-                    download_status.info(f" Downloading: {mb_downloaded:.1f} MB / {mb_total:.1f} MB ({percent:.1f}%)")
+                    download_status.info(f"Downloading: {mb_downloaded:.1f} MB / {mb_total:.1f} MB ({percent:.1f}%)")
                 
                 try:
                     if st.session_state.data_source == "GADM Database":
@@ -1241,8 +1259,8 @@ with col1:
                         )
                     else:
                         # For custom shapefiles, need to specify a country code for WorldPop data
-                        st.warning(" Custom shapefile detected. Using Sierra Leone (SLE) WorldPop data as default.")
-                        st.info(" Tip: For accurate results with custom shapefiles, ensure they align with a specific country's boundaries")
+                        st.warning("Custom shapefile detected. Using Sierra Leone (SLE) WorldPop data as default.")
+                        st.info("Tip: For accurate results with custom shapefiles, ensure they align with a specific country's boundaries")
                         processed_gdf, used_url, file_size = process_worldpop_data(
                             gdf, "SLE", year, age_group, sex,
                             progress_callback=update_download_progress
@@ -1251,20 +1269,20 @@ with col1:
                     download_status.empty()  # Clear download progress
                     
                     file_size_mb = file_size / (1024*1024) if file_size > 0 else 0
-                    st.success(f" Population data processed successfully (File size: {file_size_mb:.1f} MB)")
+                    st.success(f"Population data processed successfully (File size: {file_size_mb:.1f} MB)")
                     
-                    with st.expander("🔗 Data Source URL"):
+                    with st.expander("Data Source URL"):
                         st.code(used_url, language="text")
                         if file_size_mb > 100:
-                            st.info(💡 **Large file**: This data is now cached. Subsequent analyses will be much faster!")
+                            st.info("Large file: This data is now cached. Subsequent analyses will be much faster!")
                     
                 except Exception as e:
                     download_status.empty()
-                    st.error(f" Error processing population data: {str(e)}")
+                    st.error(f"Error processing population data: {str(e)}")
                     st.stop()
 
                 # Step 3: Generate visualizations
-                status_text.text(" Generating map...")
+                status_text.text("Generating map...")
                 progress_bar.progress(80)
                 
                 # Create visualization with white background for display
@@ -1273,7 +1291,7 @@ with col1:
                 
                 # Handle missing data
                 if processed_gdf['total_population'].sum() == 0:
-                    st.error(" No valid population data found for this area and time period")
+                    st.error("No valid population data found for this area and time period")
                     st.stop()
                 
                 # Create the plot
@@ -1314,15 +1332,15 @@ with col1:
                 
                 # Complete the analysis
                 progress_bar.progress(100)
-                status_text.text(" Analysis complete!")
+                status_text.text("Analysis complete!")
                 time.sleep(0.5)
                 status_text.empty()
                 
-                st.success(f" Population analysis completed successfully!")
+                st.success(f"Population analysis completed successfully!")
                 st.pyplot(fig)
                 
                 # Add download map button
-                st.markdown("###  Download Map")
+                st.markdown("### Download Map")
                 col_download1, col_download2 = st.columns(2)
                 
                 with col_download1:
@@ -1338,7 +1356,7 @@ with col1:
                     map_filename += ".png"
                     
                     st.download_button(
-                        label=" Download Map (PNG)",
+                        label="Download Map (PNG)",
                         data=buf,
                         file_name=map_filename,
                         mime="image/png",
@@ -1346,11 +1364,11 @@ with col1:
                     )
                 
                 with col_download2:
-                    st.info(" **Download Info**:\n- High resolution (300 DPI)\n- White background\n- Black text & legend\n- Print-ready quality")
+                    st.info("**Download Info**:\n- High resolution (300 DPI)\n- White background\n- Black text & legend\n- Print-ready quality")
 
                 # Show statistics if requested
                 if show_statistics:
-                    st.markdown("## 📊 Population Statistics")
+                    st.markdown("## Population Statistics")
                     
                     col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
                     
@@ -1392,7 +1410,7 @@ with col1:
                     st.dataframe(stats_display, use_container_width=True, height=400)
 
                 # Data download section
-                st.markdown("##  Download Data")
+                st.markdown("## Download Data")
                 
                 # Prepare dataset for download
                 download_df = processed_gdf.copy()
@@ -1460,7 +1478,7 @@ with col1:
                         filename_base += f"_{age_group}_{sex}"
                     
                     st.download_button(
-                        label="📄 Download as CSV",
+                        label="Download as CSV",
                         data=csv_data,
                         file_name=f"{filename_base}.csv",
                         mime="text/csv",
@@ -1530,7 +1548,7 @@ with col1:
                     excel_buffer.seek(0)
                     
                     st.download_button(
-                        label=" Download as Excel",
+                        label="Download as Excel",
                         data=excel_buffer.getvalue(),
                         file_name=f"{filename_base}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1538,15 +1556,15 @@ with col1:
                     )
                 
                 # Show data preview
-                with st.expander(" Preview Downloaded Data"):
+                with st.expander("Preview Downloaded Data"):
                     st.dataframe(download_df.head(10), use_container_width=True)
                     st.caption(f"Showing first 10 rows of {len(download_df)} total records")
 
             except Exception as e:
-                st.error(f" Unexpected error: {str(e)}")
+                st.error(f"Unexpected error: {str(e)}")
                 st.error("Please try again or contact support if the issue persists.")
                 
-                with st.expander(" Debug Information"):
+                with st.expander("Debug Information"):
                     st.write(f"Data Source: {st.session_state.data_source}")
                     if st.session_state.data_source == "GADM Database":
                         st.write(f"Country: {st.session_state.country}")
@@ -1597,7 +1615,7 @@ with col2:
     - Data is cached automatically for faster repeat analysis
     """)
     
-    with st.expander(" Usage Tips"):
+    with st.expander("Usage Tips"):
         st.markdown("""
         - **Admin levels**: Use level 2-3 for district analysis
         - **Recent data**: 2020 is most recent complete year
@@ -1606,11 +1624,11 @@ with col2:
         - **Custom shapefiles**: Include .prj files
         - **Large areas**: May take longer to process
         - **Downloads**: Excel includes summary stats
-        - **First time slow?**  Normal! File is 50-200 MB (then cached)
+        - **First time slow?** Normal! File is 50-200 MB (then cached)
         - **Repeat analysis**: Much faster with cached data
         """)
     
-    with st.expander(" Performance Tips"):
+    with st.expander("Performance Tips"):
         st.markdown("""
         **Why is it slow the first time?**
         - WorldPop files are 50-200 MB (vs CHIRPS 2-5 MB)
@@ -1618,11 +1636,11 @@ with col2:
         - Network download speed dependent
         
         **How to speed up:**
-        - ✅ Data caches automatically after first download
-        - ✅ Use same country/year for repeat analyses
-        - ✅ Start with higher admin levels (faster processing)
-        - ✅ Good internet connection helps first download
-        - ✅ Subsequent runs are 5-10x faster!
+        - Data caches automatically after first download
+        - Use same country/year for repeat analyses
+        - Start with higher admin levels (faster processing)
+        - Good internet connection helps first download
+        - Subsequent runs are 5-10x faster!
         
         **File Size by Country (approximate):**
         - Small countries (Gambia, Lesotho): 20-40 MB
@@ -1630,7 +1648,7 @@ with col2:
         - Large countries (Nigeria, DRC, Ethiopia): 150-250 MB
         """)
     
-    with st.expander(" Population Analysis Types"):
+    with st.expander("Population Analysis Types"):
         st.markdown("""
         **Total Population:**
         - All ages, both sexes
@@ -1649,7 +1667,7 @@ with col2:
           * Elderly care (65+ years)
         """)
     
-    with st.expander(" Public Health Applications"):
+    with st.expander("Public Health Applications"):
         st.markdown("""
         **Malaria Programs:**
         - SMC target population (3-59 months)
@@ -1667,7 +1685,7 @@ with col2:
         - Survey sample size calculation
         """)
     
-    with st.expander(" Download Features"):
+    with st.expander("Download Features"):
         st.markdown("""
         **CSV Download:**
         - Clean tabular data
@@ -1682,7 +1700,7 @@ with col2:
         - Professional format
         """)
     
-    with st.expander("🔧 Troubleshooting"):
+    with st.expander("Troubleshooting"):
         st.markdown("""
         - **No data**: Try different year/age group
         - **Slow loading**: Normal for large countries
@@ -1693,7 +1711,7 @@ with col2:
         """)
 
     # System info
-    with st.expander(" System Information"):
+    with st.expander("System Information"):
         st.write(f"Current time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         st.write(f"Available years: 2000-2020")
         st.write(f"Countries available: {len(COUNTRY_OPTIONS)}")
