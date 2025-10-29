@@ -1268,9 +1268,9 @@ with col1:
                 status_text.text("📊 Generating map...")
                 progress_bar.progress(80)
                 
-                # Create visualization with dark theme for display
-                fig, ax = plt.subplots(1, 1, figsize=(12, 10), facecolor='#0f172a')
-                ax.set_facecolor('#0f172a')
+                # Create visualization with white background for display
+                fig, ax = plt.subplots(1, 1, figsize=(12, 10), facecolor='white')
+                ax.set_facecolor('white')
                 
                 # Handle missing data
                 if processed_gdf['total_population'].sum() == 0:
@@ -1283,10 +1283,10 @@ with col1:
                     ax=ax,
                     legend=True,
                     cmap=color_scheme,
-                    edgecolor="#1e40af",
+                    edgecolor="black",
                     linewidth=0.5,
                     legend_kwds={"shrink": 0.8, "label": "Population"},
-                    missing_kwds={"color": "#1e293b", "label": "No data"}
+                    missing_kwds={"color": "#e5e5e5", "label": "No data"}
                 )
                 
                 if analysis_type == "Total Population":
@@ -1294,21 +1294,21 @@ with col1:
                 else:
                     title = f"{st.session_state.country} - {age_group_name}, {sex_name} ({year})"
                 
-                ax.set_title(title, fontweight='bold', fontsize=14, color='#ffffff', pad=20)
+                ax.set_title(title, fontweight='bold', fontsize=14, color='black', pad=20)
                 ax.set_axis_off()
                 
-                # Style the legend text to be white
+                # Style the legend text to be black
                 legend = ax.get_legend()
                 if legend:
-                    # Set legend text color to white
+                    # Set legend text color to black
                     for text in legend.get_texts():
-                        text.set_color('#ffffff')
-                    # Set legend title color to white
-                    legend.get_title().set_color('#ffffff')
-                    # Set legend frame to match dark theme
+                        text.set_color('black')
+                    # Set legend title color to black
+                    legend.get_title().set_color('black')
+                    # Set legend frame to match white theme
                     frame = legend.get_frame()
-                    frame.set_facecolor('#0f172a')
-                    frame.set_edgecolor('#60a5fa')
+                    frame.set_facecolor('white')
+                    frame.set_edgecolor('black')
                     frame.set_alpha(0.9)
                 
                 plt.tight_layout()
@@ -1327,36 +1327,9 @@ with col1:
                 col_download1, col_download2 = st.columns(2)
                 
                 with col_download1:
-                    # Create a version for download with white background
-                    fig_download, ax_download = plt.subplots(1, 1, figsize=(12, 10), facecolor='white')
-                    ax_download.set_facecolor('white')
-                    
-                    processed_gdf.plot(
-                        column="total_population",
-                        ax=ax_download,
-                        legend=True,
-                        cmap=color_scheme,
-                        edgecolor="black",
-                        linewidth=0.5,
-                        legend_kwds={"shrink": 0.8, "label": "Population"},
-                        missing_kwds={"color": "#e5e5e5", "label": "No data"}
-                    )
-                    
-                    ax_download.set_title(title, fontweight='bold', fontsize=14, color='black', pad=20)
-                    ax_download.set_axis_off()
-                    
-                    # Style the legend text to be black
-                    legend_download = ax_download.get_legend()
-                    if legend_download:
-                        for text in legend_download.get_texts():
-                            text.set_color('black')
-                    
-                    plt.tight_layout()
-                    
-                    # Save to buffer
-                    from io import BytesIO
+                    # Save to buffer for download (same as display now)
                     buf = BytesIO()
-                    fig_download.savefig(buf, format='png', dpi=300, bbox_inches='tight', facecolor='white')
+                    fig.savefig(buf, format='png', dpi=300, bbox_inches='tight', facecolor='white')
                     buf.seek(0)
                     
                     # Create filename
@@ -1372,8 +1345,6 @@ with col1:
                         mime="image/png",
                         use_container_width=True
                     )
-                    
-                    plt.close(fig_download)
                 
                 with col_download2:
                     st.info("💡 **Download Info**:\n- High resolution (300 DPI)\n- White background\n- Black text & legend\n- Print-ready quality")
