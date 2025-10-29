@@ -40,15 +40,15 @@ st.markdown("""
         --accent-cyan: #06b6d4;
     }
     
-    /* Main app background with gradient */
+    /* Main app background - Pure dark */
     .stApp {
-        background: linear-gradient(135deg, #0a0e1a 0%, #0f1629 25%, #1a237e 75%, #1565c0 100%);
+        background: #0a0e1a;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     }
     
-    /* Sidebar styling */
+    /* Sidebar styling - Pure dark */
     [data-testid="stSidebar"] {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
         border-right: 1px solid rgba(37, 99, 235, 0.2);
     }
@@ -69,8 +69,14 @@ st.markdown("""
     [data-testid="stSidebar"] h1, 
     [data-testid="stSidebar"] h2, 
     [data-testid="stSidebar"] h3 {
-        color: #93c5fd !important;
+        color: #ffffff !important;
         font-weight: 700;
+    }
+    
+    [data-testid="stSidebar"] h1 strong,
+    [data-testid="stSidebar"] h2 strong,
+    [data-testid="stSidebar"] h3 strong {
+        color: #93c5fd !important;
     }
     
     /* Main content area */
@@ -80,14 +86,14 @@ st.markdown("""
         max-width: 1400px;
     }
     
-    /* Headers with gradient background */
+    /* Headers with pure dark background */
     h1, h2, h3 {
-        color: #93c5fd !important;
+        color: #ffffff !important;
         font-weight: 700;
     }
     
     h1 {
-        background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 25%, #1e3a8a 75%, #2563eb 100%);
+        background: #0d1b2a;
         padding: 2rem;
         border-radius: 1rem;
         box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
@@ -96,9 +102,9 @@ st.markdown("""
         margin-bottom: 2rem;
     }
     
-    /* Card-like containers */
+    /* Card-like containers - Pure dark */
     [data-testid="stExpander"] {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
         border: 1px solid rgba(37, 99, 235, 0.2);
         border-radius: 15px;
@@ -122,17 +128,17 @@ st.markdown("""
         color: #93c5fd !important;
     }
     
-    /* Expander header styling */
+    /* Expander header styling - Pure dark */
     .streamlit-expanderHeader {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
-        color: #93c5fd !important;
+        background: #1e293b;
+        color: #ffffff !important;
         font-weight: 600;
         border-radius: 12px;
         border: 1px solid rgba(30, 64, 175, 0.3);
     }
     
     .streamlit-expanderHeader:hover {
-        background: linear-gradient(135deg, rgba(51, 65, 85, 0.95) 0%, rgba(71, 85, 105, 0.95) 100%);
+        background: #334155;
         border-color: rgba(37, 99, 235, 0.4);
     }
     
@@ -261,9 +267,9 @@ st.markdown("""
         color: #6b7280 !important;
     }
     
-    /* Radio buttons */
+    /* Radio buttons - Pure dark */
     .stRadio > div {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+        background: #0f172a;
         padding: 1rem;
         border-radius: 12px;
         border: 1px solid rgba(30, 64, 175, 0.3);
@@ -291,9 +297,9 @@ st.markdown("""
         color: #ffffff !important;
     }
     
-    /* File uploader */
+    /* File uploader - Pure dark */
     [data-testid="stFileUploader"] {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        background: #0f172a;
         border: 2px dashed #2563eb;
         border-radius: 15px;
         padding: 2rem;
@@ -306,17 +312,17 @@ st.markdown("""
     
     /* Metrics */
     [data-testid="stMetricValue"] {
-        color: #93c5fd !important;
+        color: #ffffff !important;
         font-size: 2rem !important;
         font-weight: 700 !important;
     }
     
     [data-testid="stMetricLabel"] {
-        color: #6b7280 !important;
+        color: #ffffff !important;
     }
     
     div[data-testid="metric-container"] {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
         padding: 1.5rem;
         border-radius: 15px;
@@ -331,11 +337,11 @@ st.markdown("""
         border-color: rgba(59, 130, 246, 0.4);
     }
     
-    /* Success/Info/Warning/Error messages */
+    /* Success/Info/Warning/Error messages - Pure dark */
     .stSuccess {
-        background: linear-gradient(135deg, rgba(29, 78, 216, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
-        color: #93c5fd;
+        color: #ffffff;
         border: 1px solid rgba(37, 99, 235, 0.4);
         border-radius: 12px;
         padding: 1rem;
@@ -343,9 +349,9 @@ st.markdown("""
     }
     
     .stInfo {
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.2) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
-        color: #67e8f9;
+        color: #ffffff;
         border: 1px solid rgba(6, 182, 212, 0.4);
         border-radius: 12px;
         padding: 1rem;
@@ -353,9 +359,9 @@ st.markdown("""
     }
     
     .stWarning {
-        background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(202, 138, 4, 0.2) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
-        color: #fde047;
+        color: #ffffff;
         border: 1px solid rgba(234, 179, 8, 0.4);
         border-radius: 12px;
         padding: 1rem;
@@ -363,9 +369,9 @@ st.markdown("""
     }
     
     .stError {
-        background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(185, 28, 28, 0.2) 100%);
+        background: #0f172a;
         backdrop-filter: blur(15px);
-        color: #fca5a5;
+        color: #ffffff;
         border: 1px solid rgba(220, 38, 38, 0.4);
         border-radius: 12px;
         padding: 1rem;
@@ -378,23 +384,23 @@ st.markdown("""
         border-radius: 10px;
     }
     
-    /* Dataframe */
+    /* Dataframe - Pure dark */
     [data-testid="stDataFrame"] {
-        background: rgba(15, 23, 42, 0.95);
+        background: #0f172a;
         border: 1px solid rgba(37, 99, 235, 0.2);
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
     
-    /* Tables */
+    /* Tables - Pure dark */
     table {
-        background: rgba(15, 23, 42, 0.95) !important;
-        color: #e1effe !important;
+        background: #0f172a !important;
+        color: #ffffff !important;
     }
     
     thead tr th {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%) !important;
-        color: #93c5fd !important;
+        background: #1e293b !important;
+        color: #ffffff !important;
         font-weight: 600 !important;
         border-bottom: 2px solid rgba(37, 99, 235, 0.3) !important;
     }
@@ -407,16 +413,16 @@ st.markdown("""
         background: rgba(30, 41, 59, 0.5) !important;
     }
     
-    /* Tabs */
+    /* Tabs - Pure dark */
     .stTabs [data-baseweb="tab-list"] {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        background: #0f172a;
         border-radius: 12px;
         padding: 0.5rem;
         border: 1px solid rgba(37, 99, 235, 0.2);
     }
     
     .stTabs [data-baseweb="tab"] {
-        color: #93c5fd;
+        color: #ffffff;
         font-weight: 600;
         border-radius: 8px;
     }
@@ -557,9 +563,9 @@ st.markdown("""
         border-radius: 12px;
     }
     
-    /* Footer styling */
+    /* Footer styling - Pure dark */
     footer {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
+        background: #0f172a;
         border-top: 1px solid rgba(37, 99, 235, 0.2);
         color: #6b7280;
     }
