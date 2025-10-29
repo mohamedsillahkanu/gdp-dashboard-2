@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from datetime import datetime
 import time
 
-# Set page config with dark theme
+# Set page config with premium theme
 st.set_page_config(
     page_title="WorldPop Population Analysis",
     page_icon="👥",
@@ -22,314 +22,644 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Apply dark theme CSS with sophisticated black and blue theme
+# Apply world-class gold standard theme - Deep Navy & Electric Blue with sophisticated animations
 st.markdown("""
 <style>
-    /* Main background - Deep black with blue undertones */
+    /* Import premium fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    /* Global font application */
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    /* Main background - Sophisticated navy gradient with animated particles */
     .stApp {
-        background: linear-gradient(135deg, #000814 0%, #001d3d 100%);
+        background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+        background-attachment: fixed;
+        position: relative;
     }
     
-    /* Sidebar styling - Dark with blue accent */
+    /* Animated background overlay */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 40% 20%, rgba(14, 165, 233, 0.02) 0%, transparent 50%);
+        pointer-events: none;
+        animation: pulseGlow 15s ease-in-out infinite;
+    }
+    
+    @keyframes pulseGlow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    /* Sidebar - Premium glass morphism effect */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #000814 0%, #001233 100%);
-        border-right: 1px solid rgba(0, 119, 182, 0.2);
+        background: linear-gradient(180deg, rgba(10, 25, 47, 0.95) 0%, rgba(17, 34, 64, 0.95) 100%);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
     }
     
-    /* Headers with elegant blue glow */
+    [data-testid="stSidebar"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 1px;
+        height: 100%;
+        background: linear-gradient(180deg, 
+            transparent 0%, 
+            rgba(59, 130, 246, 0.5) 30%, 
+            rgba(139, 92, 246, 0.5) 70%, 
+            transparent 100%);
+        animation: sidebarGlow 3s ease-in-out infinite;
+    }
+    
+    @keyframes sidebarGlow {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+    
+    /* Headers with sophisticated typography */
     h1 {
-        color: #0096FF !important;
-        text-shadow: 0 0 20px rgba(0, 150, 255, 0.6);
-        font-weight: 700 !important;
+        color: #60A5FA !important;
+        font-weight: 800 !important;
+        font-size: 3rem !important;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #60A5FA 0%, #818CF8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 40px rgba(96, 165, 250, 0.3);
+        margin-bottom: 0.5rem !important;
+        animation: titleGlow 3s ease-in-out infinite;
+    }
+    
+    @keyframes titleGlow {
+        0%, 100% { filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.4)); }
+        50% { filter: drop-shadow(0 0 30px rgba(96, 165, 250, 0.6)); }
     }
     
     h2 {
-        color: #00B4D8 !important;
-        text-shadow: 0 0 15px rgba(0, 180, 216, 0.5);
+        color: #93C5FD !important;
+        font-weight: 700 !important;
+        font-size: 1.75rem !important;
+        letter-spacing: -0.01em;
+        margin-top: 2rem !important;
+        margin-bottom: 1rem !important;
+        border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        padding-bottom: 0.5rem;
     }
     
     h3 {
-        color: #48CAE4 !important;
-        text-shadow: 0 0 12px rgba(72, 202, 228, 0.4);
+        color: #BFDBFE !important;
+        font-weight: 600 !important;
+        font-size: 1.25rem !important;
+        letter-spacing: -0.01em;
+        margin-top: 1.5rem !important;
     }
     
-    /* Metrics - Electric blue with glow */
+    /* Metrics - Premium card design with animations */
+    [data-testid="metric-container"] {
+        background: linear-gradient(135deg, rgba(17, 34, 64, 0.9), rgba(26, 54, 93, 0.9));
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 
+            0 4px 24px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    [data-testid="metric-container"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(96, 165, 250, 0.1), 
+            transparent);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+    
+    [data-testid="metric-container"]:hover {
+        transform: translateY(-4px);
+        border-color: rgba(96, 165, 250, 0.5);
+        box-shadow: 
+            0 8px 32px rgba(59, 130, 246, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    
     [data-testid="stMetricValue"] {
-        color: #00B4D8 !important;
-        font-size: 2.2rem !important;
-        font-weight: 700 !important;
-        text-shadow: 0 0 20px rgba(0, 180, 216, 0.7);
+        color: #60A5FA !important;
+        font-size: 2.5rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 10px rgba(96, 165, 250, 0.5);
     }
     
     [data-testid="stMetricLabel"] {
-        color: #90E0EF !important;
+        color: #93C5FD !important;
         font-weight: 600 !important;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.1em;
+        font-size: 0.75rem !important;
     }
     
-    /* Metric containers */
-    [data-testid="metric-container"] {
-        background: linear-gradient(135deg, rgba(0, 119, 182, 0.1), rgba(0, 180, 216, 0.1));
-        border: 1px solid rgba(0, 150, 255, 0.3);
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 4px 20px rgba(0, 119, 182, 0.2);
-    }
-    
-    /* Buttons - Bright blue */
+    /* Buttons - Premium 3D effect with sophisticated hover */
     .stButton > button {
-        background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%);
+        background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
         color: #ffffff;
-        border: 2px solid #00B4D8;
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
         font-weight: 700;
         font-size: 1rem;
-        transition: all 0.3s ease;
+        letter-spacing: 0.05em;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        box-shadow: 0 0 25px rgba(0, 119, 182, 0.4);
+        box-shadow: 
+            0 4px 16px rgba(37, 99, 235, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.3), 
+            transparent);
+        transition: left 0.5s;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #0096C7 0%, #00B4D8 100%);
-        border-color: #48CAE4;
-        box-shadow: 0 0 35px rgba(0, 180, 216, 0.6);
+        background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
         transform: translateY(-2px);
+        box-shadow: 
+            0 8px 24px rgba(59, 130, 246, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
     
-    /* Primary button - Vibrant blue gradient */
+    .stButton > button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+    
+    /* Primary button - Enhanced gradient */
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #023E8A 0%, #0077B6 100%);
-        border: 2px solid #0096C7;
-        box-shadow: 0 0 30px rgba(0, 119, 182, 0.6);
+        background: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%);
+        box-shadow: 
+            0 6px 20px rgba(30, 64, 175, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
     
     .stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%);
-        border-color: #00B4D8;
-        box-shadow: 0 0 45px rgba(0, 150, 255, 0.8);
-        transform: translateY(-2px);
+        background: linear-gradient(135deg, #2563EB 0%, #3B82F6 50%, #60A5FA 100%);
+        box-shadow: 
+            0 10px 32px rgba(37, 99, 235, 0.7),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
     
-    /* Download buttons - Cyan blue */
+    /* Download buttons - Distinct purple accent */
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #00B4D8 0%, #48CAE4 100%);
-        color: #000814;
-        border: 2px solid #90E0EF;
+        background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+        color: #ffffff;
+        border: none;
         font-weight: 700;
-        box-shadow: 0 0 25px rgba(0, 180, 216, 0.5);
+        box-shadow: 
+            0 4px 16px rgba(124, 58, 237, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
     
     .stDownloadButton > button:hover {
-        background: linear-gradient(135deg, #48CAE4 0%, #90E0EF 100%);
-        border-color: #ADE8F4;
-        box-shadow: 0 0 35px rgba(72, 202, 228, 0.7);
+        background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
         transform: translateY(-2px);
+        box-shadow: 
+            0 8px 24px rgba(139, 92, 246, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
     
-    /* Text inputs and selects - Dark with blue accent */
+    /* Input fields - Modern glass morphism */
     .stSelectbox > div > div,
     .stTextInput > div > div,
     .stNumberInput > div > div {
-        background-color: #001233;
-        color: #CAF0F8;
-        border: 2px solid rgba(0, 119, 182, 0.4);
-        border-radius: 8px;
+        background: rgba(17, 34, 64, 0.8) !important;
+        backdrop-filter: blur(10px);
+        color: #E0E7FF !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 10px;
         font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .stSelectbox > div > div:hover,
     .stTextInput > div > div:hover,
-    .stNumberInput > div > div:hover {
-        border-color: #0096C7;
-        box-shadow: 0 0 15px rgba(0, 150, 199, 0.3);
+    .stNumberInput > div > div:hover,
+    .stSelectbox > div > div:focus-within,
+    .stTextInput > div > div:focus-within,
+    .stNumberInput > div > div:focus-within {
+        border-color: rgba(96, 165, 250, 0.6) !important;
+        box-shadow: 
+            0 0 0 3px rgba(59, 130, 246, 0.1),
+            inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        background: rgba(26, 54, 93, 0.9) !important;
     }
     
-    /* Radio buttons - Modern card style */
+    /* Radio buttons - Premium card style */
     .stRadio > div {
-        background: linear-gradient(135deg, rgba(0, 18, 51, 0.8), rgba(0, 8, 20, 0.8));
-        padding: 1.2rem;
+        background: linear-gradient(135deg, rgba(17, 34, 64, 0.9), rgba(26, 54, 93, 0.9));
+        backdrop-filter: blur(10px);
+        padding: 1.5rem;
         border-radius: 12px;
-        border: 1px solid rgba(0, 119, 182, 0.3);
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        box-shadow: 
+            0 4px 16px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     
     .stRadio label {
-        color: #CAF0F8 !important;
+        color: #BFDBFE !important;
         font-weight: 600;
+        transition: color 0.2s ease;
     }
     
-    /* Checkboxes - Blue accent */
-    .stCheckbox {
-        color: #CAF0F8;
+    .stRadio label:hover {
+        color: #93C5FD !important;
     }
     
+    /* Checkboxes - Modern accent */
     .stCheckbox label {
+        color: #BFDBFE !important;
         font-weight: 600;
     }
     
-    /* File uploader - Glowing blue border */
+    /* File uploader - Elegant dashed border with glow */
     [data-testid="stFileUploader"] {
-        background: linear-gradient(135deg, rgba(0, 18, 51, 0.6), rgba(0, 8, 20, 0.6));
-        border: 2px dashed rgba(0, 150, 255, 0.5);
-        border-radius: 12px;
-        padding: 1.5rem;
-        transition: all 0.3s ease;
+        background: linear-gradient(135deg, rgba(17, 34, 64, 0.7), rgba(26, 54, 93, 0.7));
+        backdrop-filter: blur(10px);
+        border: 2px dashed rgba(96, 165, 250, 0.4);
+        border-radius: 16px;
+        padding: 2rem;
+        transition: all 0.4s ease;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
     [data-testid="stFileUploader"]:hover {
-        border-color: #0096FF;
-        box-shadow: 0 0 25px rgba(0, 150, 255, 0.3);
+        border-color: rgba(96, 165, 250, 0.7);
+        background: linear-gradient(135deg, rgba(26, 54, 93, 0.8), rgba(30, 64, 175, 0.3));
+        box-shadow: 
+            0 4px 20px rgba(59, 130, 246, 0.2),
+            inset 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
-    /* Success messages - Bright cyan/green */
+    /* Alert messages - Refined with better contrast */
     .stSuccess {
-        background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(5, 150, 105, 0.15));
-        border-left: 4px solid #06D6A0;
-        color: #7FFFD4 !important;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+        border-left: 4px solid #10B981;
+        border-radius: 10px;
+        color: #A7F3D0 !important;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(6, 214, 160, 0.3);
+        padding: 1rem 1.5rem;
+        box-shadow: 
+            0 4px 16px rgba(16, 185, 129, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
-    /* Info messages - Bright blue */
     .stInfo {
-        background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 119, 182, 0.15));
-        border-left: 4px solid #0096FF;
-        color: #90E0EF !important;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15));
+        border-left: 4px solid #3B82F6;
+        border-radius: 10px;
+        color: #BFDBFE !important;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
+        padding: 1rem 1.5rem;
+        box-shadow: 
+            0 4px 16px rgba(59, 130, 246, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
-    /* Warning messages - Bright amber */
     .stWarning {
-        background: linear-gradient(135deg, rgba(255, 183, 77, 0.15), rgba(255, 152, 0, 0.15));
-        border-left: 4px solid #FFB74D;
-        color: #FFE082 !important;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15));
+        border-left: 4px solid #F59E0B;
+        border-radius: 10px;
+        color: #FDE68A !important;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(255, 183, 77, 0.3);
+        padding: 1rem 1.5rem;
+        box-shadow: 
+            0 4px 16px rgba(245, 158, 11, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
-    /* Error messages - Bright red */
     .stError {
-        background: linear-gradient(135deg, rgba(239, 83, 80, 0.15), rgba(229, 57, 53, 0.15));
-        border-left: 4px solid #EF5350;
-        color: #FFCDD2 !important;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+        border-left: 4px solid #EF4444;
+        border-radius: 10px;
+        color: #FECACA !important;
         font-weight: 600;
-        box-shadow: 0 0 15px rgba(239, 83, 80, 0.3);
+        padding: 1rem 1.5rem;
+        box-shadow: 
+            0 4px 16px rgba(239, 68, 68, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
-    /* Expander - Cool blue gradient */
+    /* Expander - Sophisticated accordion */
     .streamlit-expanderHeader {
-        background: linear-gradient(135deg, rgba(0, 18, 51, 0.8), rgba(0, 8, 20, 0.8));
-        border-radius: 8px;
-        color: #0096FF !important;
-        border: 1px solid rgba(0, 119, 182, 0.3);
-        font-weight: 600;
+        background: linear-gradient(135deg, rgba(17, 34, 64, 0.9), rgba(26, 54, 93, 0.9));
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        color: #60A5FA !important;
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        font-weight: 700;
+        padding: 1rem 1.5rem;
         transition: all 0.3s ease;
+        box-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     
     .streamlit-expanderHeader:hover {
-        background: linear-gradient(135deg, rgba(0, 18, 51, 1), rgba(0, 8, 20, 1));
-        border-color: #0096FF;
-        box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+        background: linear-gradient(135deg, rgba(26, 54, 93, 0.95), rgba(30, 64, 175, 0.3));
+        border-color: rgba(96, 165, 250, 0.5);
+        box-shadow: 
+            0 4px 16px rgba(59, 130, 246, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
     }
     
-    /* Dataframe - Modern dark table */
+    /* Dataframe - Premium table styling */
     .stDataFrame {
-        background-color: #001233;
-        border-radius: 8px;
-        border: 1px solid rgba(0, 119, 182, 0.3);
+        background: rgba(17, 34, 64, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
     
-    /* Progress bar - Blue gradient */
+    /* Table headers - Bold and elegant */
+    thead tr th {
+        background: linear-gradient(135deg, #1E40AF, #2563EB) !important;
+        color: #E0E7FF !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem !important;
+        border-bottom: 2px solid rgba(96, 165, 250, 0.5) !important;
+    }
+    
+    /* Table rows - Subtle hover effect */
+    tbody tr {
+        background: rgba(26, 54, 93, 0.5) !important;
+        transition: all 0.2s ease;
+    }
+    
+    tbody tr:nth-child(even) {
+        background: rgba(17, 34, 64, 0.5) !important;
+    }
+    
+    tbody tr:hover {
+        background: rgba(59, 130, 246, 0.15) !important;
+        transform: scale(1.01);
+    }
+    
+    tbody td {
+        color: #BFDBFE !important;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    /* Progress bar - Animated gradient */
     .stProgress > div > div {
-        background: linear-gradient(90deg, #0077B6 0%, #0096C7 50%, #00B4D8 100%);
-        box-shadow: 0 0 20px rgba(0, 119, 182, 0.5);
+        background: linear-gradient(90deg, 
+            #2563EB 0%, 
+            #3B82F6 25%, 
+            #60A5FA 50%, 
+            #93C5FD 75%, 
+            #BFDBFE 100%);
+        background-size: 200% 100%;
+        animation: progressShine 2s linear infinite;
+        box-shadow: 
+            0 2px 10px rgba(59, 130, 246, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
     }
     
-    /* Code blocks - Bright blue */
+    @keyframes progressShine {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    /* Code blocks - Developer-friendly monospace */
     code {
-        background-color: #001233;
-        color: #00B4D8 !important;
-        padding: 0.3rem 0.6rem;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace !important;
+        background: rgba(17, 34, 64, 0.9);
+        color: #60A5FA !important;
+        padding: 0.4rem 0.8rem;
         border-radius: 6px;
-        border: 1px solid rgba(0, 119, 182, 0.4);
-        font-weight: 600;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        font-weight: 500;
+        font-size: 0.9em;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     
-    /* Links - Cyan blue */
+    pre {
+        background: rgba(17, 34, 64, 0.9) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 
+            0 4px 16px rgba(0, 0, 0, 0.3),
+            inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Links - Smooth transitions */
     a {
-        color: #48CAE4 !important;
+        color: #60A5FA !important;
         text-decoration: none;
         font-weight: 600;
         transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background: linear-gradient(90deg, #60A5FA, #818CF8);
+        transition: width 0.3s ease;
     }
     
     a:hover {
-        color: #90E0EF !important;
-        text-decoration: underline;
-        text-shadow: 0 0 10px rgba(72, 202, 228, 0.6);
+        color: #93C5FD !important;
     }
     
-    /* Caption text - Soft blue-gray */
-    .css-1629p8f, .css-nahz7x {
-        color: #8B9DC3 !important;
+    a:hover::after {
+        width: 100%;
+    }
+    
+    /* Caption text - Subtle and refined */
+    .css-1629p8f, .css-nahz7x, [data-testid="stCaptionContainer"] {
+        color: #94A3B8 !important;
         font-weight: 500;
+        font-size: 0.875rem;
     }
     
-    /* Divider - Glowing blue line */
+    /* Divider - Elegant gradient line */
     hr {
         border: none;
         height: 2px;
-        background: linear-gradient(90deg, transparent, #0096FF, transparent);
-        box-shadow: 0 0 10px rgba(0, 150, 255, 0.4);
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(59, 130, 246, 0.5) 25%, 
+            rgba(139, 92, 246, 0.5) 75%, 
+            transparent 100%);
+        margin: 2rem 0;
+        box-shadow: 0 1px 8px rgba(59, 130, 246, 0.3);
     }
     
-    /* Regular text - Light blue-white */
-    p, li, span, div {
-        color: #CAF0F8 !important;
+    /* Text colors - Refined hierarchy */
+    p, li, span, div, label {
+        color: #CBD5E1 !important;
     }
     
-    /* Markdown text */
     .stMarkdown {
-        color: #CAF0F8 !important;
+        color: #CBD5E1 !important;
     }
     
-    /* Subheaders in sidebar */
+    /* Strong emphasis */
+    strong {
+        color: #E0E7FF !important;
+        font-weight: 700;
+    }
+    
+    /* Sidebar headers */
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3 {
-        color: #0096FF !important;
+        color: #60A5FA !important;
     }
     
     /* Radio button selected state */
     input[type="radio"]:checked + label {
-        color: #00B4D8 !important;
+        color: #60A5FA !important;
+        font-weight: 700;
     }
     
-    /* Make all text more visible */
-    .stApp p, .stApp span, .stApp div, .stApp li {
-        color: #CAF0F8 !important;
+    /* Scrollbar styling - Minimal and elegant */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
     }
     
-    /* Table headers */
-    thead tr th {
-        background-color: #001d3d !important;
-        color: #00B4D8 !important;
+    ::-webkit-scrollbar-track {
+        background: rgba(17, 34, 64, 0.5);
+        border-radius: 10px;
     }
     
-    /* Table rows */
-    tbody tr {
-        background-color: #001233 !important;
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #2563EB, #3B82F6);
+        border-radius: 10px;
+        border: 2px solid rgba(17, 34, 64, 0.5);
     }
     
-    tbody tr:hover {
-        background-color: rgba(0, 119, 182, 0.1) !important;
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #3B82F6, #60A5FA);
+    }
+    
+    /* Spinner/Loader animation */
+    .stSpinner > div {
+        border-top-color: #60A5FA !important;
+        border-right-color: #818CF8 !important;
+        border-bottom-color: #A78BFA !important;
+        border-left-color: #C4B5FD !important;
+    }
+    
+    /* Tooltips */
+    [data-testid="stTooltipIcon"] {
+        color: #60A5FA !important;
+    }
+    
+    /* Tab navigation */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: rgba(17, 34, 64, 0.5);
+        padding: 8px;
+        border-radius: 12px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        border-radius: 8px;
+        color: #94A3B8;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: rgba(59, 130, 246, 0.1);
+        color: #BFDBFE;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #2563EB, #3B82F6) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Container shadows for depth */
+    .element-container {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Premium shadow effects for cards */
+    [data-testid="stVerticalBlock"] > [style*="flex-direction: column"] > [data-testid="stVerticalBlock"] {
+        background: rgba(17, 34, 64, 0.3);
+        border-radius: 16px;
+        padding: 0.5rem;
+        backdrop-filter: blur(10px);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -985,8 +1315,8 @@ with col1:
                 
                 # Create visualization with dark theme
                 plt.style.use('dark_background')
-                fig, ax = plt.subplots(1, 1, figsize=(12, 10), facecolor='#0e1117')
-                ax.set_facecolor('#0e1117')
+                fig, ax = plt.subplots(1, 1, figsize=(12, 10), facecolor='#0a192f')
+                ax.set_facecolor('#0a192f')
                 
                 # Handle missing data
                 if processed_gdf['total_population'].sum() == 0:
@@ -1002,7 +1332,7 @@ with col1:
                     edgecolor="white",
                     linewidth=0.5,
                     legend_kwds={"shrink": 0.8, "label": "Population"},
-                    missing_kwds={"color": "#262b35", "label": "No data"}
+                    missing_kwds={"color": "#112240", "label": "No data"}
                 )
                 
                 if analysis_type == "Total Population":
@@ -1376,7 +1706,7 @@ with col2:
         st.write(f"Age groups: {len(AGE_GROUPS)}")
         st.write("Resolution: ~100m")
         st.write("Source: WorldPop (www.worldpop.org)")
-        st.write("Tool version: v1.0 (Dark Theme)")
+        st.write("Tool version: v1.0 (Premium Theme)")
 
 # Footer
 st.markdown("---")
