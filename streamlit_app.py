@@ -54,7 +54,15 @@ st.markdown("""
     }
     
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-        color: #e1effe;
+        color: #ffffff;
+    }
+    
+    [data-testid="stSidebar"] p {
+        color: #ffffff !important;
+    }
+    
+    [data-testid="stSidebar"] label {
+        color: #ffffff !important;
     }
     
     /* Sidebar headers */
@@ -99,7 +107,19 @@ st.markdown("""
     }
     
     [data-testid="stExpander"] [data-testid="stMarkdownContainer"] {
-        color: #e1effe;
+        color: #ffffff;
+    }
+    
+    [data-testid="stExpander"] p {
+        color: #ffffff !important;
+    }
+    
+    [data-testid="stExpander"] li {
+        color: #ffffff !important;
+    }
+    
+    [data-testid="stExpander"] strong {
+        color: #93c5fd !important;
     }
     
     /* Expander header styling */
@@ -163,17 +183,82 @@ st.markdown("""
     .stMultiSelect > div > div,
     .stTextInput > div > div,
     .stNumberInput > div > div {
-        background: rgba(15, 23, 42, 0.9);
-        border: 2px solid #1e40af;
-        border-radius: 12px;
-        color: #e1effe;
+        background: rgba(15, 23, 42, 0.9) !important;
+        border: 2px solid #1e40af !important;
+        border-radius: 12px !important;
+        color: #ffffff !important;
     }
     
     .stSelectbox > div > div:focus-within,
     .stMultiSelect > div > div:focus-within,
     .stTextInput > div > div:focus-within {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+    }
+    
+    /* Selectbox text and options */
+    .stSelectbox label,
+    .stMultiSelect label {
+        color: #ffffff !important;
+    }
+    
+    /* Dropdown menu styling */
+    [data-baseweb="select"] > div {
+        background-color: rgba(15, 23, 42, 0.95) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Dropdown input field */
+    [data-baseweb="select"] input {
+        color: #ffffff !important;
+    }
+    
+    /* Dropdown selected value */
+    [data-baseweb="select"] [data-baseweb="tag"] {
+        background-color: rgba(29, 78, 216, 0.3) !important;
+        color: #93c5fd !important;
+    }
+    
+    /* Dropdown menu container */
+    [role="listbox"] {
+        background-color: rgba(15, 23, 42, 0.98) !important;
+        border: 1px solid rgba(37, 99, 235, 0.4) !important;
+        border-radius: 12px !important;
+        backdrop-filter: blur(15px) !important;
+    }
+    
+    /* Dropdown menu options */
+    [role="option"] {
+        background-color: transparent !important;
+        color: #ffffff !important;
+        padding: 0.75rem 1rem !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    [role="option"]:hover {
+        background-color: rgba(29, 78, 216, 0.4) !important;
+        color: #ffffff !important;
+    }
+    
+    [role="option"][aria-selected="true"] {
+        background-color: rgba(37, 99, 235, 0.5) !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Dropdown arrow icon */
+    [data-baseweb="select"] svg {
+        color: #93c5fd !important;
+    }
+    
+    /* Input text color */
+    input, textarea {
+        color: #ffffff !important;
+        background-color: rgba(15, 23, 42, 0.9) !important;
+    }
+    
+    input::placeholder, textarea::placeholder {
+        color: #6b7280 !important;
     }
     
     /* Radio buttons */
@@ -185,12 +270,25 @@ st.markdown("""
     }
     
     .stRadio > div > label {
-        color: #e1effe !important;
+        color: #ffffff !important;
+    }
+    
+    .stRadio label {
+        color: #ffffff !important;
+    }
+    
+    /* Radio button options */
+    .stRadio [role="radiogroup"] label {
+        color: #ffffff !important;
     }
     
     /* Checkboxes */
     .stCheckbox > label {
-        color: #e1effe !important;
+        color: #ffffff !important;
+    }
+    
+    .stCheckbox label span {
+        color: #ffffff !important;
     }
     
     /* File uploader */
@@ -422,20 +520,35 @@ st.markdown("""
         color: #6b7280 !important;
     }
     
-    /* Text color */
+    /* Text color - Light blue and white theme */
     p, li, span, label {
-        color: #e1effe !important;
+        color: #ffffff !important;
     }
     
     /* Markdown text */
     [data-testid="stMarkdownContainer"] {
-        color: #e1effe;
+        color: #ffffff;
     }
     
-    /* Strong/bold text */
+    /* Strong/bold text - Light blue */
     strong {
         color: #93c5fd !important;
         font-weight: 600;
+    }
+    
+    /* All headings - Light blue */
+    h1, h2, h3, h4, h5, h6 {
+        color: #93c5fd !important;
+    }
+    
+    /* Paragraph text */
+    p {
+        color: #ffffff !important;
+    }
+    
+    /* List items */
+    ul li, ol li {
+        color: #ffffff !important;
     }
     
     /* Make plotly charts have dark background */
