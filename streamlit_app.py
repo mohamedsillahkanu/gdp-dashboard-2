@@ -14,15 +14,469 @@ from matplotlib import pyplot as plt
 from datetime import datetime
 import time
 
-# Set page config
+# Set page config with custom theme
 st.set_page_config(
     page_title="WorldPop Population Analysis",
     page_icon="👥",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Define country codes globally - THIS MUST BE AT TOP LEVEL
-# Countries arranged in alphabetical order
+# Custom CSS matching the blue dark theme from HTML
+st.markdown("""
+<style>
+    /* Import fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    
+    /* Global theme variables */
+    :root {
+        --primary-blue: #2563eb;
+        --secondary-blue: #3b82f6;
+        --dark-bg: #0a0e1a;
+        --card-bg: rgba(15, 23, 42, 0.95);
+        --card-border: rgba(37, 99, 235, 0.2);
+        --text-primary: #e1effe;
+        --text-secondary: #93c5fd;
+        --accent-cyan: #06b6d4;
+    }
+    
+    /* Main app background with gradient */
+    .stApp {
+        background: linear-gradient(135deg, #0a0e1a 0%, #0f1629 25%, #1a237e 75%, #1565c0 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+        backdrop-filter: blur(15px);
+        border-right: 1px solid rgba(37, 99, 235, 0.2);
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+        color: #e1effe;
+    }
+    
+    /* Sidebar headers */
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3 {
+        color: #93c5fd !important;
+        font-weight: 700;
+    }
+    
+    /* Main content area */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1400px;
+    }
+    
+    /* Headers with gradient background */
+    h1, h2, h3 {
+        color: #93c5fd !important;
+        font-weight: 700;
+    }
+    
+    h1 {
+        background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 25%, #1e3a8a 75%, #2563eb 100%);
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    /* Card-like containers */
+    [data-testid="stExpander"] {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        margin-bottom: 1rem;
+    }
+    
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] {
+        color: #e1effe;
+    }
+    
+    /* Expander header styling */
+    .streamlit-expanderHeader {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%);
+        color: #93c5fd !important;
+        font-weight: 600;
+        border-radius: 12px;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+    }
+    
+    .streamlit-expanderHeader:hover {
+        background: linear-gradient(135deg, rgba(51, 65, 85, 0.95) 0%, rgba(71, 85, 105, 0.95) 100%);
+        border-color: rgba(37, 99, 235, 0.4);
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 16px;
+        box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(29, 78, 216, 0.4);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0);
+    }
+    
+    /* Download buttons */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+    }
+    
+    /* Select boxes and inputs */
+    .stSelectbox > div > div,
+    .stMultiSelect > div > div,
+    .stTextInput > div > div,
+    .stNumberInput > div > div {
+        background: rgba(15, 23, 42, 0.9);
+        border: 2px solid #1e40af;
+        border-radius: 12px;
+        color: #e1effe;
+    }
+    
+    .stSelectbox > div > div:focus-within,
+    .stMultiSelect > div > div:focus-within,
+    .stTextInput > div > div:focus-within {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    
+    /* Radio buttons */
+    .stRadio > div {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+    }
+    
+    .stRadio > div > label {
+        color: #e1effe !important;
+    }
+    
+    /* Checkboxes */
+    .stCheckbox > label {
+        color: #e1effe !important;
+    }
+    
+    /* File uploader */
+    [data-testid="stFileUploader"] {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        border: 2px dashed #2563eb;
+        border-radius: 15px;
+        padding: 2rem;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.2);
+    }
+    
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        color: #93c5fd !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: #6b7280 !important;
+    }
+    
+    div[data-testid="metric-container"] {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        backdrop-filter: blur(15px);
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    div[data-testid="metric-container"]:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.3);
+        border-color: rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Success/Info/Warning/Error messages */
+    .stSuccess {
+        background: linear-gradient(135deg, rgba(29, 78, 216, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+        backdrop-filter: blur(15px);
+        color: #93c5fd;
+        border: 1px solid rgba(37, 99, 235, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 15px rgba(29, 78, 216, 0.2);
+    }
+    
+    .stInfo {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.2) 100%);
+        backdrop-filter: blur(15px);
+        color: #67e8f9;
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
+    }
+    
+    .stWarning {
+        background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(202, 138, 4, 0.2) 100%);
+        backdrop-filter: blur(15px);
+        color: #fde047;
+        border: 1px solid rgba(234, 179, 8, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 15px rgba(234, 179, 8, 0.2);
+    }
+    
+    .stError {
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(185, 28, 28, 0.2) 100%);
+        backdrop-filter: blur(15px);
+        color: #fca5a5;
+        border: 1px solid rgba(220, 38, 38, 0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+    }
+    
+    /* Progress bar */
+    .stProgress > div > div > div {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        border-radius: 10px;
+    }
+    
+    /* Dataframe */
+    [data-testid="stDataFrame"] {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Tables */
+    table {
+        background: rgba(15, 23, 42, 0.95) !important;
+        color: #e1effe !important;
+    }
+    
+    thead tr th {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%) !important;
+        color: #93c5fd !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid rgba(37, 99, 235, 0.3) !important;
+    }
+    
+    tbody tr {
+        border-bottom: 1px solid rgba(30, 64, 175, 0.2) !important;
+    }
+    
+    tbody tr:hover {
+        background: rgba(30, 41, 59, 0.5) !important;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        border-radius: 12px;
+        padding: 0.5rem;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        color: #93c5fd;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        color: white;
+    }
+    
+    /* Spinner */
+    .stSpinner > div {
+        border-top-color: #2563eb !important;
+    }
+    
+    /* Code blocks */
+    code {
+        background: rgba(10, 14, 26, 0.95);
+        color: #93c5fd;
+        padding: 0.2rem 0.4rem;
+        border-radius: 6px;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+    }
+    
+    pre {
+        background: rgba(10, 14, 26, 0.95);
+        border: 1px solid rgba(30, 64, 175, 0.3);
+        border-radius: 12px;
+        padding: 1rem;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    }
+    
+    /* Badge styling */
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin: 0.25rem;
+    }
+    
+    .badge-csv {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+    }
+    
+    .badge-excel {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        color: white;
+    }
+    
+    .badge-gadm {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+    }
+    
+    .badge-custom {
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+        color: white;
+    }
+    
+    /* Links */
+    a {
+        color: #60a5fa !important;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    a:hover {
+        color: #93c5fd !important;
+        text-decoration: underline;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: rgba(37, 99, 235, 0.2);
+        margin: 2rem 0;
+    }
+    
+    /* Caption text */
+    .stCaptionContainer {
+        color: #6b7280 !important;
+    }
+    
+    /* Text color */
+    p, li, span, label {
+        color: #e1effe !important;
+    }
+    
+    /* Markdown text */
+    [data-testid="stMarkdownContainer"] {
+        color: #e1effe;
+    }
+    
+    /* Strong/bold text */
+    strong {
+        color: #93c5fd !important;
+        font-weight: 600;
+    }
+    
+    /* Make plotly charts have dark background */
+    .js-plotly-plot {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border-radius: 12px;
+    }
+    
+    /* Footer styling */
+    footer {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
+        border-top: 1px solid rgba(37, 99, 235, 0.2);
+        color: #6b7280;
+    }
+    
+    /* Animation for hover effects */
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: .8;
+        }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+            padding: 1.5rem 1rem;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Define country codes globally
 COUNTRY_OPTIONS = {
     "Angola": "AGO",
     "Benin": "BEN",
@@ -72,7 +526,6 @@ WORLDPOP_CODES = {code: code.lower() for code in COUNTRY_OPTIONS.values()}
 AVAILABLE_YEARS = list(range(2000, 2021))
 
 # BACKEND CONFIGURATION FOR AGE/SEX DISAGGREGATION
-# ==============================================
 AGE_GROUPS = {
     "Total Population": "ppp",
     "0-1 years": "0",
@@ -101,9 +554,7 @@ SEX_OPTIONS = {
     "Female": "f"
 }
 
-# ==============================================
-
-# Initialize session state variables to avoid NameError
+# Initialize session state variables
 if 'data_source' not in st.session_state:
     st.session_state.data_source = "GADM Database"
 if 'country' not in st.session_state:
@@ -417,13 +868,19 @@ def process_worldpop_data(_gdf, country_code, year, age_group, sex, progress_cal
     
     return gdf, used_url, file_size
 
-# Main app layout
-st.title("👥 WorldPop Population Data Analysis and Mapping")
-st.markdown("*Analyze population distribution for public health planning and intervention targeting*")
+# Main app layout with custom header
+st.markdown("""
+<h1>
+    👥 WorldPop Population Data Analysis
+</h1>
+<p style='text-align: center; color: #9ca3af; font-size: 1.2rem; margin-top: -1rem; margin-bottom: 2rem;'>
+    Analyze population distribution for public health planning and intervention targeting
+</p>
+""", unsafe_allow_html=True)
 
 # Sidebar for controls
 with st.sidebar:
-    st.header("Analysis Parameters")
+    st.markdown("## 📊 Analysis Parameters")
     
     # Data source selection
     data_source = st.radio(
@@ -522,14 +979,18 @@ with st.sidebar:
         st.session_state.admin_level = admin_level
         st.session_state.use_custom_shapefile = use_custom_shapefile
 
+    st.markdown("---")
+    
     # Year selection
-    st.subheader("📅 Year Selection")
+    st.markdown("### 📅 Year Selection")
     year = st.selectbox("Select Year", AVAILABLE_YEARS, 
                        index=len(AVAILABLE_YEARS)-1,  # Default to most recent year
                        help="WorldPop data available 2000-2020")
     
+    st.markdown("---")
+    
     # Population disaggregation options
-    st.subheader("👥 Population Parameters")
+    st.markdown("### 👥 Population Parameters")
     
     analysis_type = st.radio(
         "Analysis Type",
@@ -552,10 +1013,12 @@ with st.sidebar:
         
         st.info(f"📊 Analyzing: {age_group_name}, {sex_name}")
 
+    st.markdown("---")
+    
     # Display options
-    st.subheader("Display Options")
+    st.markdown("### 🎨 Display Options")
     show_statistics = st.checkbox("📈 Show Statistics", value=True)
-    color_scheme = st.selectbox("🎨 Color Scheme", 
+    color_scheme = st.selectbox("Color Scheme", 
                                ["YlOrRd", "viridis", "plasma", "Reds", "Blues", "Purples"])
 
 # Main content area
@@ -670,8 +1133,9 @@ with col1:
                 status_text.text("📊 Generating map...")
                 progress_bar.progress(80)
                 
-                # Create visualization
-                fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+                # Create visualization with dark theme
+                fig, ax = plt.subplots(1, 1, figsize=(12, 10), facecolor='#0f172a')
+                ax.set_facecolor('#0f172a')
                 
                 # Handle missing data
                 if processed_gdf['total_population'].sum() == 0:
@@ -684,10 +1148,10 @@ with col1:
                     ax=ax,
                     legend=True,
                     cmap=color_scheme,
-                    edgecolor="white",
+                    edgecolor="#1e40af",
                     linewidth=0.5,
                     legend_kwds={"shrink": 0.8, "label": "Population"},
-                    missing_kwds={"color": "lightgray", "label": "No data"}
+                    missing_kwds={"color": "#1e293b", "label": "No data"}
                 )
                 
                 if analysis_type == "Total Population":
@@ -695,7 +1159,7 @@ with col1:
                 else:
                     title = f"{st.session_state.country} - {age_group_name}, {sex_name} ({year})"
                 
-                ax.set_title(title, fontweight='bold', fontsize=14)
+                ax.set_title(title, fontweight='bold', fontsize=14, color='#93c5fd', pad=20)
                 ax.set_axis_off()
                 
                 plt.tight_layout()
@@ -711,7 +1175,7 @@ with col1:
 
                 # Show statistics if requested
                 if show_statistics:
-                    st.subheader("📊 Population Statistics")
+                    st.markdown("## 📊 Population Statistics")
                     
                     col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
                     
@@ -753,7 +1217,7 @@ with col1:
                     st.dataframe(stats_display, use_container_width=True, height=400)
 
                 # Data download section
-                st.subheader("📥 Download Data")
+                st.markdown("## 📥 Download Data")
                 
                 # Prepare dataset for download
                 download_df = processed_gdf.copy()
@@ -920,7 +1384,7 @@ with col1:
                         st.write(f"Sex: {sex_name}")
 
 with col2:
-    st.subheader("ℹ️ About This Tool")
+    st.markdown("## ℹ️ About This Tool")
     st.markdown("""
     **WorldPop Population Analysis Tool**
     
@@ -1065,7 +1529,11 @@ with col2:
 
 # Footer
 st.markdown("---")
-st.markdown("*Built for public health professionals and researchers*")
-st.markdown("**Contact**: Mohamed Sillah Kanu | Informatics Consultancy Firm - Sierra Leone (ICF-SL)")
-st.markdown("**Email**: mohamed.kanu@informaticsconsultancyfirm.com")
-st.markdown("**Data Sources**: WorldPop (www.worldpop.org) | GADM (gadm.org)")
+st.markdown("""
+<div style='text-align: center; color: #6b7280; padding: 2rem 0;'>
+    <p style='margin-bottom: 0.5rem;'><strong>Built for public health professionals and researchers</strong></p>
+    <p style='margin-bottom: 0.5rem;'><strong>Contact</strong>: Mohamed Sillah Kanu | Informatics Consultancy Firm - Sierra Leone (ICF-SL)</p>
+    <p style='margin-bottom: 0.5rem;'><strong>Email</strong>: mohamed.kanu@informaticsconsultancyfirm.com</p>
+    <p><strong>Data Sources</strong>: WorldPop (www.worldpop.org) | GADM (gadm.org)</p>
+</div>
+""", unsafe_allow_html=True)
