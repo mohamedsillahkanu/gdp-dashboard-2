@@ -240,12 +240,12 @@ st.markdown("""
         background-color: #0a0e1a !important;
         color: #93c5fd !important;
         padding: 0.75rem 1rem !important;
-        transition: all 0.2s ease !important;
+        transition: none !important;
     }
     
     [role="option"]:hover {
-        background-color: rgba(96, 165, 250, 0.2) !important;
-        color: #ffffff !important;
+        background-color: #0a0e1a !important;
+        color: #93c5fd !important;
     }
     
     [role="option"][aria-selected="true"] {
@@ -1300,8 +1300,16 @@ with col1:
                 # Style the legend text to be white
                 legend = ax.get_legend()
                 if legend:
+                    # Set legend text color to white
                     for text in legend.get_texts():
                         text.set_color('#ffffff')
+                    # Set legend title color to white
+                    legend.get_title().set_color('#ffffff')
+                    # Set legend frame to match dark theme
+                    frame = legend.get_frame()
+                    frame.set_facecolor('#0f172a')
+                    frame.set_edgecolor('#60a5fa')
+                    frame.set_alpha(0.9)
                 
                 plt.tight_layout()
                 
