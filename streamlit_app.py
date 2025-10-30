@@ -1021,50 +1021,52 @@ def process_worldpop_data(_gdf, country_code, year, age_group, sex, progress_cal
     
     return gdf, used_url, file_size
 
-def project_population(base_gdf, growth_rate, num_years):
+def project_population(base_gdf, base_year, growth_rate, num_years):
     """
     Project population for multiple years using compound growth formula.
-    Always uses 2020 as the baseline year and projects forward.
+    Uses the selected base year and projects forward.
     
     Parameters:
-    - base_gdf: GeoDataFrame with 2020 population data
+    - base_gdf: GeoDataFrame with base year population data
+    - base_year: The baseline year (e.g., 2015, 2020)
     - growth_rate: Annual growth rate as percentage (e.g., 2.5 for 2.5%, -1.5 for -1.5%)
-    - num_years: Number of years to project from 2020 (e.g., 5 means 2021-2025)
+    - num_years: Number of years to project from base year (e.g., 5 means base_year+1 to base_year+5)
     
     Returns:
     - Dictionary with years as keys and projected GeoDataFrames as values
     
     Example:
-    - base_gdf has 2020 population = 100,000
+    - base_gdf has 2015 population = 100,000
+    - base_year = 2015
     - growth_rate = 2.5% (positive growth)
     - num_years = 5
-    - Returns: {2021: 102,500, 2022: 105,063, ..., 2025: 113,141}
+    - Returns: {2016: 102,500, 2017: 105,063, ..., 2020: 113,141}
     
     - If growth_rate = -1.5% (negative/decline)
-    - Returns: {2021: 98,500, 2022: 97,023, ..., 2025: 92,774}
+    - Returns: {2016: 98,500, 2017: 97,023, ..., 2020: 92,774}
     """
     projected_data = {}
     
     # Calculate growth factor (works for both positive and negative rates)
     growth_factor = 1 + (growth_rate / 100)
     
-    # Always project forward from 2020
-    # Year 2021 = 2020 + 1 year, Year 2022 = 2020 + 2 years, etc.
-    years = list(range(2021, 2021 + num_years))
+    # Always project forward from base year
+    # Year (base+1) = base + 1 year, Year (base+2) = base + 2 years, etc.
+    years = list(range(base_year + 1, base_year + 1 + num_years))
     
     for year_idx, proj_year in enumerate(years):
-        # Create a copy of the base geodataframe (2020 data)
+        # Create a copy of the base geodataframe
         projected_gdf = base_gdf.copy()
         
-        # Years from 2020 baseline: 1, 2, 3, 4, 5, ...
-        years_from_2020 = year_idx + 1
+        # Years from base year: 1, 2, 3, 4, 5, ...
+        years_from_base = year_idx + 1
         
-        # Apply compound growth formula: P(year) = P(2020) * (1 + r)^t
-        # Where t = years from 2020
+        # Apply compound growth formula: P(year) = P(base) * (1 + r)^t
+        # Where t = years from base year
         # For positive growth: population increases
         # For negative growth: population decreases
-        projected_gdf['total_population'] = base_gdf['total_population'] * (growth_factor ** years_from_2020)
-        projected_gdf['mean_density'] = base_gdf['mean_density'] * (growth_factor ** years_from_2020)
+        projected_gdf['total_population'] = base_gdf['total_population'] * (growth_factor ** years_from_base)
+        projected_gdf['mean_density'] = base_gdf['mean_density'] * (growth_factor ** years_from_base)
         
         projected_data[proj_year] = projected_gdf
     
@@ -1186,13 +1188,14 @@ with st.sidebar:
     # Year selection and projection
     st.markdown("### Year Selection & Projection")
     
-    # Base year (always 2020 for consistency)
-    year = st.selectbox("Base Year (WorldPop Data)", [2020], 
-                       help="2020 is used as baseline for all analyses and projections (most recent complete WorldPop data)")
+    # Base year selection (2000-2020)
+    year = st.selectbox("Base Year (WorldPop Data)", AVAILABLE_YEARS, 
+                       index=len(AVAILABLE_YEARS)-1,  # Default to 2020 (most recent)
+                       help="Select any year 2000-2020 as your baseline for analysis and projections")
     
     # Multi-year projection toggle
     enable_projection = st.checkbox("Enable Multi-Year Projection", value=False,
-                                   help="Project population forward from 2020 using growth rate")
+                                   help=f"Project population forward from {year} baseline using growth rate")
     
     if enable_projection:
         col_proj1, col_proj2 = st.columns(2)
@@ -1204,7 +1207,7 @@ with st.sidebar:
                 max_value=20,
                 value=5,
                 step=1,
-                help="Number of years forward from 2020 (e.g., 5 = years 2021-2025)"
+                help=f"Number of years forward from {year} (e.g., 5 = years {year+1}-{year+5})"
             )
         
         with col_proj2:
@@ -1215,16 +1218,16 @@ with st.sidebar:
                 value=2.5,
                 step=0.1,
                 format="%.2f",
-                help="Annual population growth rate from 2020 baseline (positive = growth, negative = decline)"
+                help=f"Annual population growth rate from {year} baseline (positive = growth, negative = decline)"
             )
         
-        # Calculate projected years (always forward from 2020)
-        projected_years_list = list(range(2021, 2021 + projection_years))
+        # Calculate projected years (always forward from selected base year)
+        projected_years_list = list(range(year + 1, year + 1 + projection_years))
         
         if growth_rate >= 0:
-            st.info(f"📈 Projecting **growth** for years: {', '.join(map(str, projected_years_list))} at {growth_rate}% annual rate")
+            st.info(f"📈 Projecting **growth** from {year} baseline for years: {', '.join(map(str, projected_years_list))} at {growth_rate}% annual rate")
         else:
-            st.info(f"📉 Projecting **decline** for years: {', '.join(map(str, projected_years_list))} at {growth_rate}% annual rate")
+            st.info(f"📉 Projecting **decline** from {year} baseline for years: {', '.join(map(str, projected_years_list))} at {growth_rate}% annual rate")
     else:
         projection_years = 0
         growth_rate = 0.0
@@ -1344,7 +1347,7 @@ with col1:
                 
                 try:
                     if st.session_state.data_source == "GADM Database":
-                        processed_gdf_2020, used_url, file_size = process_worldpop_data(
+                        processed_gdf_base, used_url, file_size = process_worldpop_data(
                             gdf, st.session_state.country_code, year, age_group, sex, 
                             progress_callback=update_download_progress
                         )
@@ -1352,7 +1355,7 @@ with col1:
                         # For custom shapefiles, need to specify a country code for WorldPop data
                         st.warning("Custom shapefile detected. Using Sierra Leone (SLE) WorldPop data as default.")
                         st.info("Tip: For accurate results with custom shapefiles, ensure they align with a specific country's boundaries")
-                        processed_gdf_2020, used_url, file_size = process_worldpop_data(
+                        processed_gdf_base, used_url, file_size = process_worldpop_data(
                             gdf, "SLE", year, age_group, sex,
                             progress_callback=update_download_progress
                         )
@@ -1360,7 +1363,7 @@ with col1:
                     download_status.empty()  # Clear download progress
                     
                     file_size_mb = file_size / (1024*1024) if file_size > 0 else 0
-                    st.success(f"Population data (2020 baseline) processed successfully (File size: {file_size_mb:.1f} MB)")
+                    st.success(f"Population data ({year} baseline) processed successfully (File size: {file_size_mb:.1f} MB)")
                     
                     with st.expander("Data Source URL"):
                         st.code(used_url, language="text")
@@ -1373,16 +1376,16 @@ with col1:
                     st.stop()
 
                 # Step 3: Generate projections if enabled
-                all_years_data = {2020: processed_gdf_2020}  # Start with 2020 baseline
+                all_years_data = {year: processed_gdf_base}  # Start with selected base year
                 
                 if enable_projection:
-                    status_text.text("Generating population projections from 2020 baseline...")
+                    status_text.text(f"Generating population projections from {year} baseline...")
                     progress_bar.progress(60)
                     
-                    projected_data = project_population(processed_gdf_2020, growth_rate, projection_years)
+                    projected_data = project_population(processed_gdf_base, year, growth_rate, projection_years)
                     all_years_data.update(projected_data)
                     
-                    st.success(f"Population projected for {len(projected_data)} years from 2020 baseline using {growth_rate}% annual growth rate")
+                    st.success(f"Population projected for {len(projected_data)} years from {year} baseline using {growth_rate}% annual growth rate")
                 
                 # Step 4: Generate visualizations for all years
                 status_text.text("Generating maps for all years...")
@@ -1647,7 +1650,7 @@ with col1:
                             year_data = download_df[download_df['year'] == proj_year]
                             summary_data.append({
                                 'Year': proj_year,
-                                'Type': 'Baseline' if proj_year == 2020 else 'Projected',
+                                'Type': 'Baseline' if proj_year == year else 'Projected',
                                 'Total Population': f"{year_data['total_population'].sum():,.0f}",
                                 'Mean per Unit': f"{year_data['total_population'].mean():,.0f}",
                                 'Std Dev': f"{year_data['total_population'].std():,.0f}",
@@ -1751,19 +1754,19 @@ with col2:
     **Coverage:**
     - All African countries supported
     - Administrative levels 0-4
-    - Base years: 2000-2020 (any year can be selected)
-    - Multi-year projections (forward/backward)
+    - Base years: 2000-2020 (select any year)
+    - Multi-year projections forward from selected base
     - Age/sex disaggregated data available
     - ~100m spatial resolution
     
     **NEW: Multi-Year Projection**
     - Select ANY year 2000-2020 as your baseline
-    - Project population forward or backward from baseline
+    - Project population forward from your selected base year
     - User-defined growth rates (positive/negative)
     - Up to 20 years projection from baseline
-    - Compound growth formula: P(t) = P(base) × (1 + r)^t
+    - Compound growth formula: P(year) = P(base) × (1 + r)^(year-base)
     - Download all years in single dataset
-    - Generate maps for all projected years
+    - Generate maps for baseline + all projected years
     
     **Use Cases:**
     - Intervention targeting & resource allocation
@@ -1773,10 +1776,11 @@ with col2:
     - Denominator estimation for surveys
     - Multi-year program planning
     - Population trend analysis
+    - Historical baseline comparison (e.g., 2015 vs 2020)
     
     **Technical Notes:**
     - Resolution: ~100m per pixel
-    - Base year: 2020 (WorldPop data)
+    - Base years available: 2000-2020 (WorldPop data)
     - UN-adjusted estimates available
     - Age groups: 0-80+ in 5-year bands
     - Sex-specific estimates available
