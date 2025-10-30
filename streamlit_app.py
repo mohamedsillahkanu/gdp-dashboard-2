@@ -525,7 +525,7 @@ def calculate_distance_bands(pop_raster_array, distance_raster, nodata_value):
 # Main app
 st.markdown("""
 <h1>
-    🏥 Access to Care Analysis
+     Access to Care Analysis
 </h1>
 <p style='text-align: center; color: #9ca3af; font-size: 1.2rem; margin-top: -1rem; margin-bottom: 2rem;'>
     Analyze population access to health facilities using distance-based metrics
@@ -583,12 +583,12 @@ with st.sidebar:
             try:
                 custom_boundaries = load_custom_shapefile(shp_file, shx_file, dbf_file, prj_file)
                 st.session_state.custom_boundaries = custom_boundaries
-                st.success(f"✅ Loaded {len(custom_boundaries)} boundary features")
+                st.success(f" Loaded {len(custom_boundaries)} boundary features")
                 
                 if custom_boundaries.crs:
-                    st.info(f"📍 CRS: {custom_boundaries.crs}")
+                    st.info(f" CRS: {custom_boundaries.crs}")
             except Exception as e:
-                st.error(f"❌ Error loading shapefile: {str(e)}")
+                st.error(f" Error loading shapefile: {str(e)}")
                 st.session_state.custom_boundaries = None
         else:
             st.info("Please upload .shp, .shx, and .dbf files")
@@ -615,7 +615,7 @@ with st.sidebar:
         help="Year for population data (2020 is most recent)"
     )
     
-    st.info(f"📅 Using **{year}** population data from WorldPop")
+    st.info(f" Using **{year}** population data from WorldPop")
     
     st.markdown("---")
     
@@ -633,11 +633,11 @@ with st.sidebar:
         
         if df_facilities is not None:
             st.session_state.facilities_df = df_facilities
-            st.success(f"✅ Loaded {len(df_facilities)} facilities")
-            st.info(f"📍 Detected columns: **{lon_col}**, **{lat_col}**")
+            st.success(f" Loaded {len(df_facilities)} facilities")
+            st.info(f" Detected columns: **{lon_col}**, **{lat_col}**")
             
             if isinstance(result, int) and result > 0:
-                st.warning(f"⚠️ Skipped {result} invalid coordinates")
+                st.warning(f" Skipped {result} invalid coordinates")
             
             # IMPROVED FILTERING - Show all categorical columns
             available_columns = [col for col in df_facilities.columns if col not in [lon_col, lat_col]]
@@ -725,13 +725,13 @@ with st.sidebar:
                                 if len(values) < len(df_facilities[col].dropna().unique()):
                                     st.caption(f"• {col}: {len(values)} values selected")
                             
-                            st.info(f"📊 Filtered to **{len(df_facilities_filtered)}** facilities")
+                            st.info(f" Filtered to **{len(df_facilities_filtered)}** facilities")
                         else:
                             st.warning("Please select at least one value for each filter column")
                     else:
                         st.info("Select columns above to start filtering")
         else:
-            st.error(f"❌ {result}")
+            st.error(f" {result}")
     else:
         st.info("Please upload a CSV or Excel file with facility coordinates")
         
@@ -776,15 +776,15 @@ with st.sidebar:
         help="Distance threshold for 'access' (default: 5 km)"
     )
     
-    st.info(f"🎯 Analyzing access within **{radius_km} km** radius")
+    st.info(f" Analyzing access within **{radius_km} km** radius")
 
 # Main content
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    if st.button("🚀 Run Access Analysis", type="primary", use_container_width=True):
+    if st.button(" Run Access Analysis", type="primary", use_container_width=True):
         if st.session_state.facilities_df is None or len(st.session_state.facilities_df) == 0:
-            st.error("❌ Please upload facility coordinates first")
+            st.error(" Please upload facility coordinates first")
         else:
             # Progress tracking
             progress_bar = st.progress(0)
@@ -797,13 +797,13 @@ with col1:
                 
                 if st.session_state.boundary_source == "GADM Database":
                     admin_boundaries = download_gadm_boundaries(country_code, admin_level)
-                    st.success(f"✅ Loaded {len(admin_boundaries)} administrative units from GADM")
+                    st.success(f" Loaded {len(admin_boundaries)} administrative units from GADM")
                 else:
                     if st.session_state.custom_boundaries is None:
-                        st.error("❌ Please upload boundary shapefile first")
+                        st.error(" Please upload boundary shapefile first")
                         st.stop()
                     admin_boundaries = st.session_state.custom_boundaries
-                    st.success(f"✅ Using custom boundaries ({len(admin_boundaries)} features)")
+                    st.success(f" Using custom boundaries ({len(admin_boundaries)} features)")
                 
                 progress_bar.progress(20)
                 
@@ -826,7 +826,7 @@ with col1:
                         pop_nodata = src.nodata if src.nodata is not None else -99999
                         pop_bounds = src.bounds
                 
-                st.success(f"✅ Population data loaded ({year})")
+                st.success(f" Population data loaded ({year})")
                 progress_bar.progress(40)
                 
                 # Step 3: Process facilities
@@ -851,10 +851,10 @@ with col1:
                 facilities_gdf = facilities_gdf.cx[minx-buffer:maxx+buffer, miny-buffer:maxy+buffer]
                 
                 if len(facilities_gdf) == 0:
-                    st.error("❌ No facilities found within country boundaries. Check coordinate system or country selection.")
+                    st.error(" No facilities found within country boundaries. Check coordinate system or country selection.")
                     st.stop()
                 
-                st.success(f"✅ Processing {len(facilities_gdf)} facilities within country")
+                st.success(f" Processing {len(facilities_gdf)} facilities within country")
                 progress_bar.progress(60)
                 
                 # Step 4: Calculate distances
@@ -865,7 +865,7 @@ with col1:
                     pop_array, facilities_gdf, pop_transform, pop_crs
                 )
                 
-                st.success("✅ Distance calculations complete")
+                st.success(" Distance calculations complete")
                 progress_bar.progress(80)
                 
                 # Step 5: Calculate statistics
@@ -883,15 +883,15 @@ with col1:
                 )
                 
                 progress_bar.progress(100)
-                status_text.text("✅ Analysis complete!")
+                status_text.text(" Analysis complete!")
                 time.sleep(0.5)
                 status_text.empty()
                 progress_bar.empty()
                 
-                st.success("🎉 Access analysis completed successfully!")
+                st.success(" Access analysis completed successfully!")
                 
                 # Display results
-                st.markdown("## 📊 Overall Access Statistics")
+                st.markdown("##  Overall Access Statistics")
                 
                 col_stat1, col_stat2, col_stat3 = st.columns(3)
                 
@@ -920,7 +920,7 @@ with col1:
                 st.dataframe(distance_bands_df, use_container_width=True)
                 
                 # Create visualizations
-                st.markdown("## 🗺️ Access Maps")
+                st.markdown("##  Access Maps")
                 
                 # Prepare data for mapping
                 access_within = (distance_raster <= radius_km * 1000) & (pop_array != pop_nodata) & (~np.isnan(pop_array)) & (pop_array > 0)
@@ -1023,7 +1023,7 @@ with col1:
                 st.pyplot(fig2)
                 
                 # Download section
-                st.markdown("## 📥 Download Results")
+                st.markdown("##  Download Results")
                 
                 col_dl1, col_dl2 = st.columns(2)
                 
@@ -1048,7 +1048,7 @@ with col1:
                     
                     csv_data = summary_data.to_csv(index=False)
                     st.download_button(
-                        label="📊 Download Summary (CSV)",
+                        label=" Download Summary (CSV)",
                         data=csv_data,
                         file_name=f"access_summary_{country_code}_{year}_{radius_km}km.csv",
                         mime="text/csv",
@@ -1109,7 +1109,7 @@ with col1:
                 pdf_buffer.seek(0)
                 
                 st.download_button(
-                    label="🗺️ Download Maps (PDF)",
+                    label=" Download Maps (PDF)",
                     data=pdf_buffer,
                     file_name=f"access_maps_{country_code}_{year}_{radius_km}km.pdf",
                     mime="application/pdf",
@@ -1136,13 +1136,13 @@ with col2:
     Analyze population access to health facilities using distance-based metrics and high-resolution population data.
     
     **Features:**
-    - 🗺️ Distance-based access analysis
-    - 📍 Auto-detect coordinate columns
-    - ✅ Automatic coordinate validation
-    - 🔍 Filter facilities by type/attribute
-    - 📊 Multiple distance bands
-    - 🎯 Customizable access radius
-    - 📥 Comprehensive reporting
+    -  Distance-based access analysis
+    -  Auto-detect coordinate columns
+    -  Automatic coordinate validation
+    -  Filter facilities by type/attribute
+    -  Multiple distance bands
+    -  Customizable access radius
+    -  Comprehensive reporting
     
     **Data Sources:**
     - WorldPop: Population distribution
