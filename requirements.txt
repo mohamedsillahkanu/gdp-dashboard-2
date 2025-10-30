@@ -22,3 +22,7 @@ openpyxl==3.1.2
 
 # Additional geospatial dependencies (usually installed with geopandas)
 rtree==1.1.0
+
+openpyxl
+shapely
+scipy
