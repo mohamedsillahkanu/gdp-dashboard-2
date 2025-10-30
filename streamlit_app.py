@@ -14,8 +14,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime
 import time
 from shapely.geometry import Point, MultiPolygon
-from rasterio.features import rasterize
-from scipy.ndimage import distance_transform_edt
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -217,25 +215,46 @@ if 'facilities_df' not in st.session_state:
     st.session_state.facilities_df = None
 if 'country_code' not in st.session_state:
     st.session_state.country_code = "SLE"
+if 'boundary_source' not in st.session_state:
+    st.session_state.boundary_source = "GADM Database"
+if 'custom_boundaries' not in st.session_state:
+    st.session_state.custom_boundaries = None
 
 @st.cache_data
 def download_worldpop_data(country_code, year):
     """Download WorldPop data"""
     country_lower = WORLDPOP_CODES[country_code]
-    url = f"https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/2020/BSGM/{country_code.upper()}/{country_lower}_ppp_{year}_UNadj_constrained.tif"
     
-    try:
-        response = requests.get(url, timeout=180, stream=True)
-        response.raise_for_status()
-        
-        chunks = []
-        for chunk in response.iter_content(chunk_size=1024*1024):
-            if chunk:
-                chunks.append(chunk)
-        
-        return b''.join(chunks), url
-    except Exception as e:
-        raise ConnectionError(f"Failed to download WorldPop data: {str(e)}")
+    # Try multiple URL patterns as WorldPop structure varies by year
+    urls_to_try = [
+        # Pattern 1: Constrained with BSGM folder (some years)
+        f"https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/{year}/BSGM/{country_code.upper()}/{country_lower}_ppp_{year}_UNadj_constrained.tif",
+        # Pattern 2: Constrained without BSGM folder
+        f"https://data.worldpop.org/GIS/Population/Global_2000_2020_Constrained/{year}/{country_code.upper()}/{country_lower}_ppp_{year}_UNadj_constrained.tif",
+        # Pattern 3: Standard without constrained
+        f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code.upper()}/{country_lower}_ppp_{year}_UNadj.tif",
+        # Pattern 4: Without UNadj
+        f"https://data.worldpop.org/GIS/Population/Global_2000_2020/{year}/{country_code.upper()}/{country_lower}_ppp_{year}.tif",
+    ]
+    
+    last_error = None
+    for url in urls_to_try:
+        try:
+            response = requests.get(url, timeout=180, stream=True)
+            response.raise_for_status()
+            
+            chunks = []
+            for chunk in response.iter_content(chunk_size=1024*1024):
+                if chunk:
+                    chunks.append(chunk)
+            
+            return b''.join(chunks), url
+        except Exception as e:
+            last_error = e
+            continue
+    
+    # If all attempts failed, raise the last error
+    raise ConnectionError(f"Failed to download WorldPop data for {country_code} {year}. Tried {len(urls_to_try)} different URL patterns. Last error: {str(last_error)}")
 
 @st.cache_data
 def download_gadm_boundaries(country_code, admin_level):
@@ -358,42 +377,98 @@ def load_facility_file(uploaded_file):
     except Exception as e:
         return None, None, None, f"Error loading file: {str(e)}"
 
-def create_distance_raster(pop_raster_array, facilities_gdf, transform, crs):
-    """Create distance raster from facilities"""
-    # Create empty raster for facilities
+def load_custom_shapefile(shp_file, shx_file, dbf_file, prj_file=None):
+    """Load custom shapefile from uploaded components"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Save uploaded files
+        shp_path = os.path.join(tmpdir, "boundary.shp")
+        shx_path = os.path.join(tmpdir, "boundary.shx")
+        dbf_path = os.path.join(tmpdir, "boundary.dbf")
+        
+        with open(shp_path, "wb") as f:
+            f.write(shp_file.getvalue())
+        with open(shx_path, "wb") as f:
+            f.write(shx_file.getvalue())
+        with open(dbf_path, "wb") as f:
+            f.write(dbf_file.getvalue())
+        
+        # Save projection file if provided
+        if prj_file is not None:
+            prj_path = os.path.join(tmpdir, "boundary.prj")
+            with open(prj_path, "wb") as f:
+                f.write(prj_file.getvalue())
+        
+        try:
+            # Load the shapefile
+            gdf = gpd.read_file(shp_path)
+        except Exception as e:
+            raise ValueError(f"Failed to read shapefile: {str(e)}")
+    
+    # Handle CRS
+    if gdf.crs is None:
+        st.warning("No coordinate system detected. Assuming WGS84 (EPSG:4326)")
+        gdf = gdf.set_crs("EPSG:4326")
+    
+    return gdf
+
+def create_distance_raster_optimized(pop_raster_array, facilities_gdf, transform, crs, chunk_size=500):
+    """Create distance raster from facilities using chunked processing for memory efficiency"""
     height, width = pop_raster_array.shape
-    facility_raster = np.zeros((height, width), dtype=np.uint8)
     
-    # Rasterize facility points
-    shapes = [(geom, 1) for geom in facilities_gdf.geometry]
-    facility_raster = rasterize(
-        shapes,
-        out_shape=(height, width),
-        transform=transform,
-        fill=0,
-        dtype=np.uint8
-    )
+    # Initialize distance array with large values
+    min_distances = np.full((height, width), np.inf, dtype=np.float32)
     
-    # Calculate Euclidean distance transform
-    # distance_transform_edt returns distance in pixels
-    distance_pixels = distance_transform_edt(facility_raster == 0)
+    # Process in chunks to save memory
+    for i in range(0, height, chunk_size):
+        for j in range(0, width, chunk_size):
+            # Define chunk bounds
+            i_end = min(i + chunk_size, height)
+            j_end = min(j + chunk_size, width)
+            
+            # Get pixel coordinates for this chunk
+            rows, cols = np.meshgrid(
+                np.arange(i, i_end), 
+                np.arange(j, j_end), 
+                indexing='ij'
+            )
+            
+            # Convert pixel coordinates to geographic coordinates
+            xs, ys = rasterio.transform.xy(transform, rows.flatten(), cols.flatten())
+            xs = np.array(xs).reshape(rows.shape)
+            ys = np.array(ys).reshape(rows.shape)
+            
+            # Calculate distance to each facility for this chunk
+            chunk_min_dist = np.full(rows.shape, np.inf, dtype=np.float32)
+            
+            for idx, facility in facilities_gdf.iterrows():
+                facility_x = facility.geometry.x
+                facility_y = facility.geometry.y
+                
+                # Calculate Euclidean distance in degrees
+                dx = xs - facility_x
+                dy = ys - facility_y
+                distances_deg = np.sqrt(dx**2 + dy**2)
+                
+                # Convert to meters (approximate)
+                # At equator: 1 degree ≈ 111,320 meters
+                # Adjust for latitude: meters = degrees * 111320 * cos(latitude)
+                lat_rad = np.radians(ys)
+                distances_m = distances_deg * 111320 * np.cos(lat_rad)
+                
+                # Keep minimum distance
+                chunk_min_dist = np.minimum(chunk_min_dist, distances_m)
+            
+            # Store chunk result
+            min_distances[i:i_end, j:j_end] = chunk_min_dist
     
-    # Convert pixels to meters
-    # Get pixel size from transform (assuming square pixels)
-    pixel_size = abs(transform[0])  # degrees
-    
-    # Convert degrees to meters (approximate at equator: 1 degree ≈ 111,320 meters)
-    # For better accuracy, calculate at the centroid latitude
-    distance_meters = distance_pixels * pixel_size * 111320
-    
-    return distance_meters
+    return min_distances
 
 def calculate_access_statistics(pop_raster_array, distance_raster, radius_km, nodata_value):
     """Calculate population access statistics"""
     radius_m = radius_km * 1000
     
     # Create mask for valid population data
-    valid_mask = (pop_raster_array != nodata_value) & (~np.isnan(pop_raster_array))
+    valid_mask = (pop_raster_array != nodata_value) & (~np.isnan(pop_raster_array)) & (pop_raster_array > 0)
     
     # Create access masks
     within_radius = (distance_raster <= radius_m) & valid_mask
@@ -428,7 +503,7 @@ def calculate_distance_bands(pop_raster_array, distance_raster, nodata_value):
     ]
     
     results = []
-    valid_mask = (pop_raster_array != nodata_value) & (~np.isnan(pop_raster_array))
+    valid_mask = (pop_raster_array != nodata_value) & (~np.isnan(pop_raster_array)) & (pop_raster_array > 0)
     total_pop = np.sum(pop_raster_array[valid_mask])
     
     for min_km, max_km, label in bands:
@@ -461,14 +536,76 @@ st.markdown("""
 with st.sidebar:
     st.markdown("## Analysis Parameters")
     
-    # Country selection
-    country = st.selectbox(
-        "Select Country",
-        list(COUNTRY_OPTIONS.keys()),
-        help="Select the country for analysis"
+    # Boundary source selection
+    boundary_source = st.radio(
+        "Boundary Data Source",
+        ["GADM Database", "Upload Custom Shapefile"],
+        help="Choose between GADM boundaries or upload your own"
     )
-    country_code = COUNTRY_OPTIONS[country]
-    st.session_state.country_code = country_code
+    st.session_state.boundary_source = boundary_source
+    
+    if boundary_source == "GADM Database":
+        # Country selection
+        country = st.selectbox(
+            "Select Country",
+            list(COUNTRY_OPTIONS.keys()),
+            help="Select the country for analysis"
+        )
+        country_code = COUNTRY_OPTIONS[country]
+        st.session_state.country_code = country_code
+        
+        # Administrative level
+        admin_level = st.selectbox(
+            "Administrative Level",
+            [0, 1, 2, 3],
+            index=2,  # Default to level 2 (districts)
+            help="0=Country, 1=Regions, 2=Districts, 3=Communes"
+        )
+        
+        level_descriptions = {
+            0: "Country boundary",
+            1: "First-level (regions/states)",
+            2: "Second-level (districts/provinces)",
+            3: "Third-level (communes/counties)"
+        }
+        st.caption(f"Level {admin_level}: {level_descriptions[admin_level]}")
+        
+    else:  # Upload Custom Shapefile
+        st.markdown("**Upload Boundary Files**")
+        st.caption("Upload all required shapefile components")
+        
+        shp_file = st.file_uploader("Shapefile (.shp)", type=['shp'], help="Main geometry file")
+        shx_file = st.file_uploader("Shape Index (.shx)", type=['shx'], help="Spatial index file")
+        dbf_file = st.file_uploader("Attribute Table (.dbf)", type=['dbf'], help="Attribute data")
+        prj_file = st.file_uploader("Projection (.prj)", type=['prj'], help="Coordinate system (optional)")
+        
+        if shp_file and shx_file and dbf_file:
+            try:
+                custom_boundaries = load_custom_shapefile(shp_file, shx_file, dbf_file, prj_file)
+                st.session_state.custom_boundaries = custom_boundaries
+                st.success(f"✅ Loaded {len(custom_boundaries)} boundary features")
+                
+                if custom_boundaries.crs:
+                    st.info(f"📍 CRS: {custom_boundaries.crs}")
+            except Exception as e:
+                st.error(f"❌ Error loading shapefile: {str(e)}")
+                st.session_state.custom_boundaries = None
+        else:
+            st.info("Please upload .shp, .shx, and .dbf files")
+            st.session_state.custom_boundaries = None
+        
+        # For custom boundaries, still need country for WorldPop
+        st.markdown("**Select Country for Population Data**")
+        country = st.selectbox(
+            "Country",
+            list(COUNTRY_OPTIONS.keys()),
+            help="Select country to download WorldPop data"
+        )
+        country_code = COUNTRY_OPTIONS[country]
+        st.session_state.country_code = country_code
+        admin_level = "Custom"
+    
+    st.markdown("---")
     
     # Year selection (default 2020)
     year = st.selectbox(
@@ -479,24 +616,6 @@ with st.sidebar:
     )
     
     st.info(f"📅 Using **{year}** population data from WorldPop")
-    
-    st.markdown("---")
-    
-    # Administrative level
-    admin_level = st.selectbox(
-        "Administrative Level",
-        [0, 1, 2, 3],
-        index=2,  # Default to level 2 (districts)
-        help="0=Country, 1=Regions, 2=Districts, 3=Communes"
-    )
-    
-    level_descriptions = {
-        0: "Country boundary",
-        1: "First-level (regions/states)",
-        2: "Second-level (districts/provinces)",
-        3: "Third-level (communes/counties)"
-    }
-    st.caption(f"Level {admin_level}: {level_descriptions[admin_level]}")
     
     st.markdown("---")
     
@@ -520,51 +639,97 @@ with st.sidebar:
             if isinstance(result, int) and result > 0:
                 st.warning(f"⚠️ Skipped {result} invalid coordinates")
             
-            # Show available columns for filtering
+            # IMPROVED FILTERING - Show all categorical columns
             available_columns = [col for col in df_facilities.columns if col not in [lon_col, lat_col]]
             
-            if available_columns:
+            # Identify categorical columns (non-numeric or with few unique values)
+            categorical_columns = []
+            for col in available_columns:
+                unique_count = df_facilities[col].nunique()
+                # Consider categorical if: non-numeric OR has fewer than 50 unique values
+                if df_facilities[col].dtype == 'object' or unique_count < 50:
+                    categorical_columns.append(col)
+            
+            if categorical_columns:
                 st.markdown("**Optional: Filter Facilities**")
                 
                 enable_filter = st.checkbox("Enable facility filtering", value=False)
                 
                 if enable_filter:
-                    filter_column = st.selectbox(
-                        "Select column to filter by",
-                        available_columns,
-                        help="Choose a column to filter facilities"
+                    st.markdown("**Select Columns and Values to Filter**")
+                    
+                    # Multi-column filtering
+                    selected_filters = {}
+                    
+                    # Allow selection of multiple columns
+                    filter_columns = st.multiselect(
+                        "Select columns to filter by",
+                        categorical_columns,
+                        help="Choose one or more columns to filter facilities"
                     )
                     
-                    # Get unique values for the selected column
-                    unique_values = df_facilities[filter_column].dropna().unique().tolist()
-                    
-                    if len(unique_values) > 0:
-                        # For many unique values, use multiselect; for few, use selectbox
-                        if len(unique_values) <= 20:
-                            selected_values = st.multiselect(
-                                f"Select {filter_column} values",
-                                unique_values,
-                                default=unique_values,
-                                help=f"Filter by {filter_column}"
-                            )
+                    if filter_columns:
+                        for filter_col in filter_columns:
+                            st.markdown(f"**Filter by: {filter_col}**")
+                            
+                            # Get unique values for this column
+                            unique_values = df_facilities[filter_col].dropna().unique().tolist()
+                            
+                            if len(unique_values) > 0:
+                                # Always use multiselect for consistency
+                                if len(unique_values) <= 30:
+                                    # Show all values
+                                    selected_values = st.multiselect(
+                                        f"Select {filter_col} values",
+                                        sorted(unique_values, key=str),
+                                        default=unique_values,
+                                        key=f"filter_{filter_col}",
+                                        help=f"Select which {filter_col} to include"
+                                    )
+                                else:
+                                    # For many values, offer text search + multiselect
+                                    search_text = st.text_input(
+                                        f"Search {filter_col}",
+                                        key=f"search_{filter_col}",
+                                        help=f"Type to search {filter_col} values"
+                                    )
+                                    
+                                    if search_text:
+                                        filtered_values = [v for v in unique_values if search_text.lower() in str(v).lower()]
+                                    else:
+                                        filtered_values = unique_values
+                                    
+                                    selected_values = st.multiselect(
+                                        f"Select {filter_col} values ({len(filtered_values)} shown)",
+                                        sorted(filtered_values, key=str),
+                                        default=filtered_values,
+                                        key=f"filter_{filter_col}",
+                                        help=f"Select which {filter_col} to include"
+                                    )
+                                
+                                if selected_values:
+                                    selected_filters[filter_col] = selected_values
+                        
+                        # Apply all filters
+                        if selected_filters:
+                            df_facilities_filtered = df_facilities.copy()
+                            
+                            for col, values in selected_filters.items():
+                                df_facilities_filtered = df_facilities_filtered[df_facilities_filtered[col].isin(values)]
+                            
+                            st.session_state.facilities_df = df_facilities_filtered
+                            
+                            # Show filter summary
+                            st.markdown("**Active Filters:**")
+                            for col, values in selected_filters.items():
+                                if len(values) < len(df_facilities[col].dropna().unique()):
+                                    st.caption(f"• {col}: {len(values)} values selected")
+                            
+                            st.info(f"📊 Filtered to **{len(df_facilities_filtered)}** facilities")
                         else:
-                            # Use text input for filtering many values
-                            filter_text = st.text_input(
-                                f"Filter {filter_column} (contains)",
-                                help=f"Enter text to filter {filter_column}"
-                            )
-                            if filter_text:
-                                selected_values = [v for v in unique_values if filter_text.lower() in str(v).lower()]
-                            else:
-                                selected_values = unique_values
-                        
-                        # Apply filter
-                        df_facilities_filtered = df_facilities[df_facilities[filter_column].isin(selected_values)]
-                        st.session_state.facilities_df = df_facilities_filtered
-                        
-                        st.info(f"📊 Filtered to **{len(df_facilities_filtered)}** facilities")
+                            st.warning("Please select at least one value for each filter column")
                     else:
-                        st.warning(f"No values found in {filter_column}")
+                        st.info("Select columns above to start filtering")
         else:
             st.error(f"❌ {result}")
     else:
@@ -618,7 +783,7 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     if st.button("🚀 Run Access Analysis", type="primary", use_container_width=True):
-        if st.session_state.facilities_df is None:
+        if st.session_state.facilities_df is None or len(st.session_state.facilities_df) == 0:
             st.error("❌ Please upload facility coordinates first")
         else:
             # Progress tracking
@@ -626,12 +791,20 @@ with col1:
             status_text = st.empty()
             
             try:
-                # Step 1: Download boundaries
-                status_text.text("Downloading administrative boundaries...")
+                # Step 1: Load boundaries
+                status_text.text("Loading administrative boundaries...")
                 progress_bar.progress(10)
                 
-                admin_boundaries = download_gadm_boundaries(country_code, admin_level)
-                st.success(f"✅ Loaded {len(admin_boundaries)} administrative units")
+                if st.session_state.boundary_source == "GADM Database":
+                    admin_boundaries = download_gadm_boundaries(country_code, admin_level)
+                    st.success(f"✅ Loaded {len(admin_boundaries)} administrative units from GADM")
+                else:
+                    if st.session_state.custom_boundaries is None:
+                        st.error("❌ Please upload boundary shapefile first")
+                        st.stop()
+                    admin_boundaries = st.session_state.custom_boundaries
+                    st.success(f"✅ Using custom boundaries ({len(admin_boundaries)} features)")
+                
                 progress_bar.progress(20)
                 
                 # Step 2: Download population data
@@ -660,7 +833,7 @@ with col1:
                 status_text.text("Processing facility locations...")
                 progress_bar.progress(50)
                 
-                facilities_df = st.session_state.facilities_df
+                facilities_df = st.session_state.facilities_df.copy()
                 
                 # Detect coordinate columns again (in case of filtering)
                 lon_col, lat_col = detect_coordinate_columns(facilities_df)
@@ -674,21 +847,21 @@ with col1:
                 
                 # Filter facilities within country bounds (with some buffer)
                 minx, miny, maxx, maxy = pop_bounds
-                buffer = 0.1  # Small buffer
+                buffer = 0.5  # Larger buffer to catch facilities near borders
                 facilities_gdf = facilities_gdf.cx[minx-buffer:maxx+buffer, miny-buffer:maxy+buffer]
                 
                 if len(facilities_gdf) == 0:
-                    st.error("❌ No facilities found within country boundaries")
+                    st.error("❌ No facilities found within country boundaries. Check coordinate system or country selection.")
                     st.stop()
                 
                 st.success(f"✅ Processing {len(facilities_gdf)} facilities within country")
                 progress_bar.progress(60)
                 
                 # Step 4: Calculate distances
-                status_text.text("Calculating distances to nearest facility...")
+                status_text.text("Calculating distances to nearest facility (this may take a moment)...")
                 progress_bar.progress(70)
                 
-                distance_raster = create_distance_raster(
+                distance_raster = create_distance_raster_optimized(
                     pop_array, facilities_gdf, pop_transform, pop_crs
                 )
                 
@@ -750,92 +923,101 @@ with col1:
                 st.markdown("## 🗺️ Access Maps")
                 
                 # Prepare data for mapping
-                access_within = (distance_raster <= radius_km * 1000) & (pop_array != pop_nodata)
-                access_beyond = (distance_raster > radius_km * 1000) & (pop_array != pop_nodata)
+                access_within = (distance_raster <= radius_km * 1000) & (pop_array != pop_nodata) & (~np.isnan(pop_array)) & (pop_array > 0)
+                access_beyond = (distance_raster > radius_km * 1000) & (pop_array != pop_nodata) & (~np.isnan(pop_array)) & (pop_array > 0)
                 
-                pop_within_array = np.where(access_within, pop_array, 0)
-                pop_beyond_array = np.where(access_beyond, pop_array, 0)
+                pop_within_array = np.where(access_within, pop_array, np.nan)
+                pop_beyond_array = np.where(access_beyond, pop_array, np.nan)
                 
                 # Map 1: Population within radius
-                st.markdown(f"### Population Within {radius_km} km")
+                st.markdown(f"### Population Within {radius_km} km of Health Facilities")
                 
                 fig1, ax1 = plt.subplots(1, 1, figsize=(12, 10), facecolor='white')
                 ax1.set_facecolor('white')
                 
                 # Plot admin boundaries
-                admin_boundaries.boundary.plot(ax=ax1, edgecolor='black', linewidth=0.5)
+                admin_boundaries_plot = admin_boundaries.to_crs("EPSG:4326")
+                admin_boundaries_plot.boundary.plot(ax=ax1, edgecolor='black', linewidth=0.5, alpha=0.7)
                 
                 # Plot population within radius
                 from matplotlib.colors import LinearSegmentedColormap
-                colors_within = ['#f0f9ff', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1']
+                colors_within = ['#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1']
                 cmap_within = LinearSegmentedColormap.from_list('access_within', colors_within)
                 
-                pop_within_masked = np.ma.masked_where(pop_within_array == 0, pop_within_array)
+                # Only show areas with population > 0
+                pop_within_display = np.where(pop_within_array > 0, pop_within_array, np.nan)
                 
-                im1 = ax1.imshow(
-                    pop_within_masked,
-                    extent=[pop_bounds.left, pop_bounds.right, pop_bounds.bottom, pop_bounds.top],
-                    cmap=cmap_within,
-                    alpha=0.7,
-                    interpolation='bilinear'
-                )
+                if np.nansum(pop_within_display) > 0:
+                    im1 = ax1.imshow(
+                        pop_within_display,
+                        extent=[pop_bounds.left, pop_bounds.right, pop_bounds.bottom, pop_bounds.top],
+                        cmap=cmap_within,
+                        alpha=0.7,
+                        interpolation='bilinear',
+                        vmin=0,
+                        vmax=np.nanpercentile(pop_within_display, 98)  # Cap at 98th percentile for better visualization
+                    )
+                    plt.colorbar(im1, ax=ax1, label='Population Density', shrink=0.7)
                 
                 # Plot facilities
                 facilities_gdf_plot = facilities_gdf.to_crs("EPSG:4326")
-                facilities_gdf_plot.plot(ax=ax1, color='red', markersize=20, marker='o', 
-                                        edgecolor='darkred', linewidth=0.5, label='Health Facilities', zorder=5)
-                
-                plt.colorbar(im1, ax=ax1, label='Population Density', shrink=0.8)
+                facilities_gdf_plot.plot(ax=ax1, color='#dc2626', markersize=30, marker='^', 
+                                        edgecolor='#7f1d1d', linewidth=0.8, label='Health Facilities', zorder=5)
                 
                 ax1.set_title(
-                    f"{country} - Population with Access (Within {radius_km} km)\n{year} Population Data",
-                    fontweight='bold', fontsize=14, color='black', pad=20
+                    f"{country} - Population with Access to Health Services\nWithin {radius_km} km Radius ({year})",
+                    fontweight='bold', fontsize=13, color='black', pad=15
                 )
                 ax1.set_xlabel('Longitude', fontsize=10, color='black')
                 ax1.set_ylabel('Latitude', fontsize=10, color='black')
-                ax1.legend(loc='upper right')
-                ax1.tick_params(colors='black')
+                ax1.legend(loc='upper right', framealpha=0.9, edgecolor='black')
+                ax1.tick_params(colors='black', labelsize=9)
+                ax1.grid(True, alpha=0.2, linestyle='--', color='gray')
                 
                 plt.tight_layout()
                 st.pyplot(fig1)
                 
                 # Map 2: Population beyond radius
-                st.markdown(f"### Population Beyond {radius_km} km")
+                st.markdown(f"### Population Beyond {radius_km} km from Health Facilities")
                 
                 fig2, ax2 = plt.subplots(1, 1, figsize=(12, 10), facecolor='white')
                 ax2.set_facecolor('white')
                 
                 # Plot admin boundaries
-                admin_boundaries.boundary.plot(ax=ax2, edgecolor='black', linewidth=0.5)
+                admin_boundaries_plot.boundary.plot(ax=ax2, edgecolor='black', linewidth=0.5, alpha=0.7)
                 
                 # Plot population beyond radius
                 colors_beyond = ['#fef2f2', '#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c']
                 cmap_beyond = LinearSegmentedColormap.from_list('access_beyond', colors_beyond)
                 
-                pop_beyond_masked = np.ma.masked_where(pop_beyond_array == 0, pop_beyond_array)
+                # Only show areas with population > 0
+                pop_beyond_display = np.where(pop_beyond_array > 0, pop_beyond_array, np.nan)
                 
-                im2 = ax2.imshow(
-                    pop_beyond_masked,
-                    extent=[pop_bounds.left, pop_bounds.right, pop_bounds.bottom, pop_bounds.top],
-                    cmap=cmap_beyond,
-                    alpha=0.7,
-                    interpolation='bilinear'
-                )
+                if np.nansum(pop_beyond_display) > 0:
+                    im2 = ax2.imshow(
+                        pop_beyond_display,
+                        extent=[pop_bounds.left, pop_bounds.right, pop_bounds.bottom, pop_bounds.top],
+                        cmap=cmap_beyond,
+                        alpha=0.7,
+                        interpolation='bilinear',
+                        vmin=0,
+                        vmax=np.nanpercentile(pop_beyond_display, 98)  # Cap at 98th percentile
+                    )
+                    plt.colorbar(im2, ax=ax2, label='Population Density', shrink=0.7)
                 
                 # Plot facilities
-                facilities_gdf_plot.plot(ax=ax2, color='green', markersize=20, marker='o',
-                                        edgecolor='darkgreen', linewidth=0.5, label='Health Facilities', zorder=5)
-                
-                plt.colorbar(im2, ax=ax2, label='Population Density', shrink=0.8)
+                facilities_gdf_plot.plot(ax=ax2, color='#16a34a', markersize=30, marker='^',
+                                        edgecolor='#14532d', linewidth=0.8, label='Health Facilities', zorder=5)
                 
                 ax2.set_title(
-                    f"{country} - Population without Access (Beyond {radius_km} km)\n{year} Population Data",
-                    fontweight='bold', fontsize=14, color='black', pad=20
+                    f"{country} - Population without Access to Health Services\nBeyond {radius_km} km Radius ({year})",
+                    fontweight='bold', fontsize=13, color='black', pad=15
                 )
                 ax2.set_xlabel('Longitude', fontsize=10, color='black')
                 ax2.set_ylabel('Latitude', fontsize=10, color='black')
-                ax2.legend(loc='upper right')
-                ax2.tick_params(colors='black')
+                ax2.legend(loc='upper right', framealpha=0.9, edgecolor='black')
+                ax2.tick_params(colors='black', labelsize=9)
+                ax2.grid(True, alpha=0.2, linestyle='--', color='gray')
                 
                 plt.tight_layout()
                 st.pyplot(fig2)
@@ -850,6 +1032,7 @@ with col1:
                     summary_data = pd.DataFrame([
                         {
                             'Country': country,
+                            'Country_Code': country_code,
                             'Year': year,
                             'Radius_km': radius_km,
                             'Total_Population': int(overall_stats['total_pop']),
@@ -858,7 +1041,8 @@ with col1:
                             'Percent_Within': round(overall_stats['pct_within'], 2),
                             'Percent_Beyond': round(overall_stats['pct_beyond'], 2),
                             'Number_of_Facilities': len(facilities_gdf),
-                            'Admin_Level': admin_level
+                            'Admin_Level': admin_level,
+                            'Analysis_Date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         }
                     ])
                     
@@ -876,9 +1060,33 @@ with col1:
                     excel_buffer = BytesIO()
                     
                     with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                        # Summary sheet
                         summary_data.to_excel(writer, sheet_name='Summary', index=False)
+                        
+                        # Distance bands sheet
                         distance_bands_df.to_excel(writer, sheet_name='Distance_Bands', index=False)
+                        
+                        # Facilities sheet
                         facilities_df.to_excel(writer, sheet_name='Facilities', index=False)
+                        
+                        # Metadata sheet
+                        metadata = pd.DataFrame({
+                            'Parameter': ['Country', 'Country Code', 'Year', 'Access Radius (km)', 
+                                        'Total Population', 'Population Within Access', 'Population Beyond Access',
+                                        '% Within Access', '% Beyond Access', 'Number of Facilities',
+                                        'Admin Level', 'Analysis Date', 'Tool Version'],
+                            'Value': [country, country_code, year, radius_km,
+                                    f"{overall_stats['total_pop']:,.0f}",
+                                    f"{overall_stats['pop_within']:,.0f}",
+                                    f"{overall_stats['pop_beyond']:,.0f}",
+                                    f"{overall_stats['pct_within']:.2f}%",
+                                    f"{overall_stats['pct_beyond']:.2f}%",
+                                    len(facilities_gdf),
+                                    admin_level,
+                                    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                    'Access to Care Analysis v1.0']
+                        })
+                        metadata.to_excel(writer, sheet_name='Metadata', index=False)
                     
                     excel_buffer.seek(0)
                     
@@ -910,12 +1118,15 @@ with col1:
                 
             except Exception as e:
                 st.error(f"❌ Error during analysis: {str(e)}")
+                import traceback
                 
                 with st.expander("Debug Information"):
                     st.write(f"Country: {country}")
+                    st.write(f"Country Code: {country_code}")
                     st.write(f"Year: {year}")
                     st.write(f"Radius: {radius_km} km")
                     st.write(f"Facilities: {len(st.session_state.facilities_df) if st.session_state.facilities_df is not None else 0}")
+                    st.code(traceback.format_exc())
 
 with col2:
     st.markdown("## About This Tool")
@@ -942,12 +1153,13 @@ with col2:
     - Euclidean distance calculation
     - Distance to nearest facility
     - Population aggregation by distance
-    - Administrative unit summaries
+    - Latitude-adjusted distance conversion
     
     **Default Settings:**
     - Population year: 2020 (most recent)
     - Access radius: 5 km (WHO standard)
     - Admin level: 2 (districts)
+    - Country: Sierra Leone
     
     **Use Cases:**
     - Health service coverage analysis
@@ -984,6 +1196,7 @@ with col2:
         - 5 km is WHO standard for access
         - Filter by facility type for targeted analysis
         - Download Excel for complete data
+        - Large countries may take 2-3 minutes
         """)
     
     with st.expander("File Format Guide"):
@@ -1035,6 +1248,7 @@ with col2:
         **Calculation Method:**
         - Euclidean (straight-line) distance
         - Distance to nearest facility
+        - Latitude-adjusted for accuracy
         - Measured in kilometers
         - Pixel-based precision
         """)
@@ -1053,10 +1267,32 @@ with col2:
         - Metadata
         
         **PDF Maps:**
-        - Population with access
-        - Population without access
-        - Facility locations
+        - Population with access (blue)
+        - Population without access (red)
+        - Facility locations (triangles)
         - High resolution (300 DPI)
+        - Grid and boundaries
+        """)
+    
+    with st.expander("Performance Notes"):
+        st.markdown("""
+        **Processing Time:**
+        - Small countries: 1-2 minutes
+        - Medium countries: 2-4 minutes
+        - Large countries: 4-8 minutes
+        
+        **First Run:**
+        - Downloads data (50-200 MB)
+        - Processes distances
+        
+        **Subsequent Runs:**
+        - Much faster (cached data)
+        - Only recalculates distances
+        
+        **Optimization:**
+        - Uses chunked processing
+        - Memory efficient
+        - Latitude-adjusted distances
         """)
 
 # Footer
